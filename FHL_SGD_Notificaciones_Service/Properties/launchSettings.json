@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "FHL_SGD_Notificaciones": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
