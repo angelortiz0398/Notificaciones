@@ -46,6 +46,8 @@ builder.Services.AddSwaggerGen(c =>
 }
 );
 builder.Services.AddScoped<EnvioViajeBusiness>();
+builder.Services.AddScoped<ValidadorNotificacionesBusiness>();
+builder.Services.AddScoped<IValidadorNotificacionRepositorio, ValidadorNotificacionRepositorio>();
 builder.Services.AddScoped<IAlertaRepositorio, AlertaRepositorio>();
 builder.Services.AddScoped<IBandejaRepositorio, BandejaRepositorio>();
 builder.Services.AddScoped<ICategoriaNotificacionRepositorio, CategoriaNotificacionRepositorio>();

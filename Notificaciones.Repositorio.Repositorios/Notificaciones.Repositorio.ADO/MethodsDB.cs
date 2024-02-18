@@ -536,10 +536,66 @@ namespace Notificaciones.Repositorio.ADO
         public const string QueryInsertarActualizarNotificaciones = @"[Notificaciones].[uspInsertarActualizarNotificaciones]";
         public const string QueryEliminarNotificaciones = @"[Notificaciones].[uspEliminarNotificaciones]";
         public const string QueryObtenerNotificaciones = @"[Notificaciones].[uspObtenerNotificaciones]";
+        public const string QueryObtenerNotificacionesPaginado = @"[Notificaciones].[uspObtenerNotificacionesPaginado]";
         #endregion
         #region GPS
         #endregion
         #region No conformidades
+        #endregion
+        #region Validaciones para Notificaciones
+
+        public string[] QueryObtenerValidacionNotificacionArreglo = [
+            "[Notificaciones].[uspObtenerValidacionNotificacion1]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion2]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion3]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion4]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion5]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion6]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion7]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion8]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion9]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion10]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion11]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion12]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion13]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion14]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion15]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion16]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion17]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion18]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion19]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion20]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion21]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion22]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion23]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion24]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion25]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion26]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion27]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion28]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion29]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion30]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion31]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion32]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion33]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion34]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion35]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion36]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion37]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion38]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion39]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion40]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion41]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion42]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion43]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion44]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion45]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion46]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion47]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion48]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion49]",
+            "[Notificaciones].[uspObtenerValidacionNotificacion50]",
+        ];
         #endregion
     }
 }

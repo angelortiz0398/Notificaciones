@@ -6,6 +6,9 @@ using SSO.Autorizacion.Attributes;
 
 namespace AdministracionSGD.Services.Api.Controllers.Common
 {
+    /// <summary>
+    /// 
+    /// </summary>
     [ApiController]
     [FHAuthorize]
     public abstract class BaseApiController : Controller
@@ -45,9 +48,15 @@ namespace AdministracionSGD.Services.Api.Controllers.Common
         }
 
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="f"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
         protected Respuesta Ok(Delegate f, params object[] args)
         {
-            var methodName = new System.Diagnostics.StackTrace(1, false).GetFrame(0).GetMethod().Name;
+            var methodName = new System.Diagnostics.StackTrace(1, false).GetFrame(0)!.GetMethod()!.Name;
             Respuesta respuesta = new Respuesta(methodName);
 
             try
@@ -70,9 +79,15 @@ namespace AdministracionSGD.Services.Api.Controllers.Common
             return respuesta;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="f"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
         protected Respuesta Paginated(Delegate f, params object[] args)
         {
-            var methodName = new System.Diagnostics.StackTrace(1, false).GetFrame(0).GetMethod().Name;
+            var methodName = new System.Diagnostics.StackTrace(1, false).GetFrame(0)!.GetMethod()!.Name;
             Respuesta respuesta = new Respuesta(methodName); try
             {
                 int TotalRows = 0;

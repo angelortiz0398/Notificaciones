@@ -13,7 +13,7 @@ namespace FHL_SGD_Notificaciones_Service
             ServiceBase[] ServicesToRun;
             ServicesToRun = new ServiceBase[]
             {
-                new NotificacionService()
+                        new NotificacionService()
             };
             ServiceBase.Run(ServicesToRun);
         }
