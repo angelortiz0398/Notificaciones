@@ -17,6 +17,7 @@ namespace FHL_SGD_Notificaciones_Api.Controllers
         /// Metodo para validar si existen notificaciones activadas y si hay alguna que se deba alertar
         /// </summary>
         /// <param name="FechaHoraValidacion"></param>
+        /// <returns>Retorna una Respuesta, dependiendo si fue exitosa tendra estatus 200 (Exitoso) o 500 (Error del servidor, tanto de la base de datos o de Twilio) </returns>
         [HttpGet("Validar/{FechaHoraValidacion}")]
         public Respuesta ValidarNotificaciones(DateTime FechaHoraValidacion)
         {

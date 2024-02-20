@@ -36,6 +36,7 @@ namespace NotificacionesService
 
         protected override void OnStop()
         {
+            EventLog1.WriteEntry("Se detuvo correctamente el proceso.");
         }
 
         public async Task EnviaSolicitud()
@@ -55,15 +56,11 @@ namespace NotificacionesService
                         var urlBase = url + "/" + DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fff");
                         // Realizar la solicitud GET
                         HttpResponseMessage response = await client.GetAsync(urlBase);
-                        // Verificar si la solicitud fue exitosa
-                        if (response.StatusCode == HttpStatusCode.OK)
+                        // Guardar la respuesta y verificar si el estatus de la respuesta fue diferente de 200 (Ok)
+                        string responseBody = await response.Content.ReadAsStringAsync();
+                        if (response.StatusCode != HttpStatusCode.OK)
                         {
-                            // Leer y mostrar la respuesta
-                            string responseBody = await response.Content.ReadAsStringAsync();
-                        }
-                        else
-                        {
-                            EventLog1.WriteEntry($"Consulta a {urlBase} fallida.");
+                            EventLog1.WriteEntry($"Consulta a {urlBase} fallida. Respuesta: {responseBody}");
                         }
 
                         // Esperar 30 segundos antes de la próxima solicitud

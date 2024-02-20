@@ -8,6 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Shared\AssetEmail.html" />
+    <None Remove="Shared\flota.png" />
+    <None Remove="Shared\logo.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <_ContentIncludedByDefault Remove="appsettings.Local.json" />
     <_ContentIncludedByDefault Remove="appsettings.Producccion.json" />
     <_ContentIncludedByDefault Remove="appsettings.QA.json" />
@@ -37,6 +43,18 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Notificaciones.Negocio.Negocios\Notificaciones.Negocio.Negocios.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Shared\AssetEmail.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Page Include="Shared\flota.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Page>
+    <Content Include="Shared\logo.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>
