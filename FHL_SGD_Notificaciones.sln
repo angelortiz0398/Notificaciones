@@ -15,6 +15,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Notificaciones.Repositorio.Contratos", "Notificaciones.Repositorio.Repositorios\Notificaciones.Repositorio.Contratos\Notificaciones.Repositorio.Contratos.csproj", "{605F7B85-AA7A-408A-BCF8-CC160447BB3D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Notificaciones.Repositorio.Repositorios", "Notificaciones.Repositorio.Repositorios\Notificaciones.Repositorio.Repositorios\Notificaciones.Repositorio.Repositorios.csproj", "{846E049F-A763-4A89-8BCF-46FF2D051AF1}"
+	ProjectSection(ProjectDependencies) = postProject
+		{08133043-B383-4E87-9DC1-B2E329C458F8} = {08133043-B383-4E87-9DC1-B2E329C458F8}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Notificaciones.Negocio.Contratos", "Notificaciones.Negocio\Notificaciones.Negocio\Notificaciones.Negocio.Contratos.csproj", "{7F74CD1F-FC5E-4BC6-A46D-330B7D4C3898}"
 EndProject
@@ -23,6 +26,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Notificaciones.Repositorio.ApiManager", "Notificaciones.Repositorio.Repositorios\Notificaciones.Repositorio.ApiManager\Notificaciones.Repositorio.ApiManager.csproj", "{8FA84E9C-56D7-4FF8-A1DF-447E89C4B3FD}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Notificaciones.Repositorio.ADO", "Notificaciones.Repositorio.Repositorios\Notificaciones.Repositorio.ADO\Notificaciones.Repositorio.ADO.csproj", "{C4FE204E-FF49-4FE5-854B-2A57D886E2F4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{08133043-B383-4E87-9DC1-B2E329C458F8} = {08133043-B383-4E87-9DC1-B2E329C458F8}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FHL_SGD_Notificaciones_Service", "FHL_SGD_Notificaciones_Service\FHL_SGD_Notificaciones_Service.csproj", "{999578B8-D48B-4AE0-993A-23D6CEB97F16}"
 	ProjectSection(ProjectDependencies) = postProject

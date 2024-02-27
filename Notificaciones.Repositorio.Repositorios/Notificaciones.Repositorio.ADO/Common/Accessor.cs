@@ -2,10 +2,10 @@
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Notificaciones.Modelo.Entidades.Notificaciones;
 using Shared.Modelos;
 using System.Data;
 using System.Reflection;
-
 using SqlConnection = Microsoft.Data.SqlClient.SqlConnection;
 
 namespace Notificaciones.Repositorio.ADO.Common
@@ -128,6 +128,80 @@ namespace Notificaciones.Repositorio.ADO.Common
                         try
                         {
                             respuesta.TotalRows = reader["TotalRows"] != DBNull.Value ? (int)reader["TotalRows"] : 0;
+                        }
+                        catch (Exception ex)
+                        {
+                            // Maneja la excepción si es necesario
+                            throw;
+                        }
+                    }
+                }
+
+                // Cierra la conexión y libera recursos de la memoria
+                connection.Close();
+            }
+            // Devuelve la cadena de respuesta
+            return respuesta;
+        }
+        /// <summary>
+        /// Ejecuta un procedimiento almacenado y devuelve la cadena de respuesta en formato JSON
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="storedProcedureName"></param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        public Respuesta SpExcuteValidacion(out List<ListaContacto> ObjectArray, string storedProcedureName, IEnumerable<SqlParameter>? parameters = null)
+        {
+            ObjectArray = [];
+            // Cadena a devolver
+            Respuesta respuesta = new Respuesta();
+            using (var connection = new SqlConnection(connectionString))
+            {
+                var command = new SqlCommand(storedProcedureName, connection);
+                command.CommandType = CommandType.StoredProcedure;
+                command.CommandTimeout = 0;
+
+                if (parameters != null)
+                {
+                    foreach (SqlParameter param in parameters)
+                    {
+                        command.Parameters.Add(param);
+                    }
+                }
+
+                // Abre la conexión
+                connection.Open();
+                // Ejecuta el Procedimiento Almacenado
+                SqlDataReader reader = command.ExecuteReader();
+
+                // Obtiene el resultado de las columnas disponibles
+                var availableColumns = Enumerable.Range(0, reader.FieldCount)
+                    .Select(reader.GetName)
+                    .ToList();
+
+                // Obtiene el resultado de la ejecución
+                if (reader.Read())
+                {
+                    respuesta.Data = reader["JsonSalida"].ToString();
+                    // Verifica si la columna "TotalRows" existe en el resultado
+                    if (availableColumns.Contains("TotalRows"))
+                    {
+                        try
+                        {
+                            respuesta.TotalRows = reader["TotalRows"] != DBNull.Value ? (int)reader["TotalRows"] : 0;
+                        }
+                        catch (Exception ex)
+                        {
+                            // Maneja la excepción si es necesario
+                            throw;
+                        }
+                    }
+                    // Verifica si la columna "TotalRows" existe en el resultado
+                    if (availableColumns.Contains("ListaContactos"))
+                    {
+                        try
+                        {
+                            ObjectArray = reader["ListaContactos"] != DBNull.Value ? JsonConvert.DeserializeObject<List<ListaContacto>>(reader["ListaContactos"].ToString()) : new();
                         }
                         catch (Exception ex)
                         {

@@ -44,7 +44,7 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                         listaNotificaciones.ForEach(notificacion =>
                         {
                             // Valida si la condicion para que se active la notificacion se esta cumpliendo
-                            if (ValidadorNotificacionRepo.ValidarAlertamientoNotificacion(notificacion.Id))
+                            if (ValidadorNotificacionRepo.ValidarAlertamientoNotificacion(out List<ListaContacto> objectArray, notificacion.Id))
                             {
                                 // Deserializa la regla que existe en esta notificacion para saber cuantas veces se tiene que repetir y en que intervalo
                                 Regla regla = !string.IsNullOrWhiteSpace(notificacion.Reglas) ? JsonConvert.DeserializeObject<Regla>(notificacion.Reglas) : new();
@@ -53,7 +53,7 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                                     && FechaHoraValidacion > (regla.Aplazamiento.UltimaEjecucion + regla.Aplazamiento.Intervalo))
                                 {
                                     // Se crea la notificacion y su alerta
-                                    Respuesta respuestaEnvioNotificacion = EnvioViajeBusiness.CreacionNotificacion(notificacion);
+                                    Respuesta respuestaEnvioNotificacion = EnvioViajeBusiness.CreacionNotificacion(notificacion, objectArray);
                                     // En caso de que la notificacion no supere las validaciones (Este vacio la condiciones o la lista de contactos) o que fuera un error del servidor
                                     if (respuestaEnvioNotificacion.Status != 200)
                                     {

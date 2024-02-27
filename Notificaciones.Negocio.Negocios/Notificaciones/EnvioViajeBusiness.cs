@@ -56,7 +56,7 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
         /// </summary>
         /// <param name="notificacion"></param>
         /// <returns>Retorna una Respuesta, dependiendo si fue exitosa tendra estatus 200 (Exitoso), 400(Fallido por error del cliente, uno o varios campos quedaron vacios) o 500 (Error del servidor, tanto de la base de datos o de Twilio) </returns>
-        public Respuesta CreacionNotificacion(Notificacion request)
+        public Respuesta CreacionNotificacion(Notificacion request, List<ListaContacto> objectArray = null)
         {
             Respuesta respuesta = new Respuesta("CreacionNotificacion");
             /*
@@ -75,7 +75,7 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
              * Valida si el campo ListaContactos tenga al menos un correo o un telefono al que notificar
              */
             List<ListaContacto> listaContactos = JsonConvert.DeserializeObject<List<ListaContacto>>(request.ListaContactos);
-            if (listaContactos[0].Emails.Count == 0 && listaContactos[0].Phones.Count == 0)
+            if (listaContactos[0].Emails.Count == 0 && listaContactos[0].Phones.Count == 0 && listaContactos[0].Users.Count == 0)
             {
                 respuesta.Status = 400;
                 respuesta.Message = "La lista de contactos no tiene emails, ni teléfono, ni usuarios a quien notificar.";
@@ -97,11 +97,15 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
             // Crea el objeto con el que se insertaran las alertas (Historico de notificaciones)
             IAlertaRepositorio AlertaRepo = new AlertaRepositorio(); // Por ejemplo
             IGenericRepository<Alerta> AlertaGenericRepo = new GenericRepository<Alerta>();
-            AlertaBusiness bandejaBusiness = new(AlertaGenericRepo, AlertaRepo);
+            AlertaBusiness alertaBusiness = new(AlertaGenericRepo, AlertaRepo);
             // Crea el objeto con el que se actualizara la notificacion
             INotificacionRepositorio NotificacionRepo = new NotificacionRepositorio();
             IGenericRepository<Notificacion> NotificacionGenericRepo = new GenericRepository<Notificacion>();
             NotificacionBusiness notificacionBusiness = new(NotificacionGenericRepo, NotificacionRepo);
+            // Crea el objeto con el que se actualizara la Bandeja
+            IBandejaRepositorio BandejaRepo = new BandejaRepositorio();
+            IGenericRepository<Bandeja> BandejaGenericRepo = new GenericRepository<Bandeja>();
+            BandejaBusiness bandejaBusiness = new(BandejaGenericRepo, BandejaRepo);
             // Se intenta hacer el proceso de enviar la notifiacion, crear la alerta y actualizar la notifiacion (por el tema de las reglas)
             try
             {
@@ -110,6 +114,17 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                 */
                 notificaciones.ForEach(notificacion =>
                 {
+                    // Se crea una alerta por cada tipo de notificacion
+                    Alerta alerta = new()
+                    {
+                        Id = 0,
+                        NotificacionesId = request.Id,
+                        FechaCreacionAlerta = Convert.ToDateTime(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fff")),
+                        TextoAlerta = "Texto de alerta de " + request.Nombre,
+                        Usuario = request.Usuario,
+                        Trail = request.Trail
+                    };
+                    Alerta alertaGuardada = alertaBusiness.Insertar(alerta);
                     switch (notificacion)
                     {
                         case "email":
@@ -138,6 +153,17 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                         // Para el envio por user, inserta en la bandeja de notificaciones del usuario
                         case "user":
                             Console.WriteLine("Notificacion por user");
+                            Bandeja bandeja = new Bandeja() {
+                                Id = 0,
+                                ColaboradoresId = listaContactos[0].Users[0].UserId,
+                                AlertasId = alertaGuardada.Id,
+                                FechaCreacionAlerta = Convert.ToDateTime(alertaGuardada.FechaCreacionAlerta.ToString("yyyy-MM-ddTHH:mm:ss.fff")),
+                                FechaLlegada = Convert.ToDateTime(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fff")),
+                                Lectura = false,
+                                Usuario = request.Usuario,
+                                Trail = request.Trail
+                            };
+                            bandejaBusiness.Insertar(bandeja);
                             break;
                         // Para el envio por push
                         case "push":
@@ -165,18 +191,6 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                             );
                             break;
                     }
-
-                    // Se crea una alerta por cada tipo de notificacion
-                    Alerta alerta = new()
-                    {
-                        Id = 0,
-                        NotificacionesId = request.Id,
-                        FechaCreacionAlerta = Convert.ToDateTime(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fff")),
-                        TextoAlerta = "Texto de alerta de " + request.Nombre,
-                        Usuario = request.Usuario,
-                        Trail = request.Trail
-                    };
-                    var bandejas = bandejaBusiness.Insertar(alerta);
                 });
 
                 // Se actualiza la notificacion cuya regla ahora estara modificada con la informacion actual de esta (repeticionActual y ultimaEjecucion)

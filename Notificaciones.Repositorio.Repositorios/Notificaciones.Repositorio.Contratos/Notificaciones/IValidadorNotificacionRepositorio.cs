@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Notificaciones.Modelo.Entidades.Notificaciones;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,6 @@ namespace Notificaciones.Repositorio.Contratos.Notificaciones
 {
     public interface IValidadorNotificacionRepositorio
     {
-        public bool ValidarAlertamientoNotificacion(long notificacionId);
+        public bool ValidarAlertamientoNotificacion(out List<ListaContacto> objectArray, long notificacionId);
     }
 }

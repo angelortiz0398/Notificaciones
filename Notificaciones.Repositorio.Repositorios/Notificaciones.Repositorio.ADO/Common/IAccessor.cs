@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
+using Notificaciones.Modelo.Entidades.Notificaciones;
 using Shared.Modelos;
 using System.Data;
 
@@ -7,6 +8,7 @@ namespace Notificaciones.Repositorio.ADO.Common
     public interface IAccessor
     {
         Respuesta SpExcuteJson(string storedProcedureName, IEnumerable<SqlParameter>? parameters = null);
+        Respuesta SpExcuteValidacion(out List<ListaContacto> ObjectArray , string storedProcedureName, IEnumerable<SqlParameter>? parameters = null);
         Respuesta SpSaveJson(out long Id, string storedProcedureName, IEnumerable<SqlParameter>? parameters = null);
         Respuesta ExecuteSp<T>(string storedProcedureName, IEnumerable<SqlParameter>? parameters = null);
         DataTable SpExecuteTable(string storedProcedureName, IEnumerable<SqlParameter>? parameters = null);

@@ -1,6 +1,7 @@
 ﻿using AdministracionSGD.Modelos.Clientes;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using Notificaciones.Modelo.Entidades.Notificaciones;
 using Shared.Modelos;
 using System.Data;
 using System.Reflection;
@@ -378,6 +379,11 @@ namespace Notificaciones.Repositorio.ADO.Common
         }
 
         public Respuesta SpExcuteJson(string storedProcedureName, IEnumerable<SqlParameter>? parameters = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Respuesta SpExcuteValidacion(out List<ListaContacto> ObjectArray, string storedProcedureName, IEnumerable<SqlParameter>? parameters = null)
         {
             throw new NotImplementedException();
         }
