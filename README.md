@@ -6,7 +6,7 @@ Es importante destacar que se esta usando una base de datos de tipo sql server y
 
 # ¿Como crear el servicio de windows despues de compilar el proyecto?
 Para ello creamos un archivo de texto en cualquier editor, le ponemos por ejemplo NotificacionesServiceInstall.bat 
-Le damos a editar y luego colocamos esto en su interior: \n    
+Le damos a editar y luego colocamos esto en su interior:         
 @ECHO Installing Service...
 @SET PATH=%PATH%;C:\Windows\Microsoft.NET\Framework\v4.0.30319\
 @InstallUtil  C:\Users\Usuario\source\repos\FHL_SGD_Notificaciones\FHL_SGD_Notificaciones_Service\bin\Debug\FHL_SGD_Notificaciones_Service.exe
