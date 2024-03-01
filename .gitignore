@@ -361,3 +361,4 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/FHL_SGD_Notificaciones_Api/appsettings.Development.json
