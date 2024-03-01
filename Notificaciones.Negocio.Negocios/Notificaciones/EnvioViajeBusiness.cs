@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using AdministracionSGD.Modelos.Despachos;
+using Microsoft.Extensions.Configuration;
 using Microsoft.JSInterop;
 using Newtonsoft.Json;
 using Notificaciones.Modelo.Entidades.Notificaciones;
@@ -7,17 +8,20 @@ using Notificaciones.Repositorio.Contratos.Common;
 using Notificaciones.Repositorio.Contratos.Notificaciones;
 using Notificaciones.Repositorio.Repositorios.Common;
 using Notificaciones.Repositorio.Repositorios.Notificaciones;
-using SendGrid.Helpers.Mail;
 using SendGrid;
+using SendGrid.Helpers.Mail;
 using Shared.Modelos;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using Twilio;
 using Twilio.Rest.Api.V2010.Account;
+using Twilio.TwiML.Messaging;
 using Alerta = Notificaciones.Modelo.Entidades.Notificaciones.Alerta;
 using Notificacion = Notificaciones.Modelo.Entidades.Notificaciones.Notificacion;
 using PhoneNumber = Twilio.Types.PhoneNumber;
-using System.IO;
 
 namespace Notificaciones.Negocio.Negocios.Notificaciones
 {
@@ -36,29 +40,32 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
         /// </summary>
         public EnvioViajeBusiness()
         {
-            var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
-            var builder = new ConfigurationBuilder()
+            IConfigurationBuilder builder = new ConfigurationBuilder()
                             .SetBasePath(AppContext.BaseDirectory)
                             .AddJsonFile($"appsettings.json", true, true)
                             .AddJsonFile($"appsettings.{environmentName}.json", true, true)
                             .AddEnvironmentVariables();
 
             Configuration = builder.Build();
-            this.AccountSid = Configuration.GetSection("ApiURLS:accountSid").Value;
-            this.AuthToken = Configuration.GetSection("ApiURLS:authToken").Value;
-            this.NumeroServicio = Configuration.GetSection("ApiURLS:numeroServicio").Value;
-            this.ApiKey = Configuration.GetSection("ApiURLS:SENDGRID_API_KEY").Value;
+            AccountSid = Configuration.GetSection("ApiURLS:accountSid").Value;
+            AuthToken = Configuration.GetSection("ApiURLS:authToken").Value;
+            NumeroServicio = Configuration.GetSection("ApiURLS:numeroServicio").Value;
+            ApiKey = Configuration.GetSection("ApiURLS:SENDGRID_API_KEY").Value;
         }
+
 
         /// <summary>
         /// Metodo para el envio de notificaciones por diferentes medios
         /// </summary>
-        /// <param name="notificacion"></param>
-        /// <returns>Retorna una Respuesta, dependiendo si fue exitosa tendra estatus 200 (Exitoso), 400(Fallido por error del cliente, uno o varios campos quedaron vacios) o 500 (Error del servidor, tanto de la base de datos o de Twilio) </returns>
-        public Respuesta CreacionNotificacion(Notificacion request, List<ListaContacto> objectArray = null)
+        /// <param name="request"></param>
+        /// <param name="objectArray"></param>
+        /// <param name="InformacionAdicional"></param>
+        /// <returns>Retorna una Respuesta, dependiendo si fue exitosa tendra estatus 200 (Exitoso), 400(Fallido por error del cliente, uno o varios campos quedaron vacios) o 500 (Error del servidor, tanto de la base de datos o de Twilio)</returns>
+        public Respuesta CreacionNotificacion(Notificacion request, List<ListaContacto> objectArray = null, string InformacionAdicional = null)
         {
-            Respuesta respuesta = new Respuesta("CreacionNotificacion");
+            Respuesta respuesta = new("CreacionNotificacion");
             /*
              * Valida si el campo Condiciones y ListaContactos no viene vacio, si es asi retorna con una respuesta de error
             */
@@ -84,12 +91,56 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                 return respuesta;
             }
 
+            // Proceso para juntar listaContactos con objectArray en listaContactos
+            // objectArray es un parametro opcional que puede o no llegar pero debido a que la funcion CreacionNotificacion() se manda a llamar desde el ValidadorNotificacionesBusiness
+            // este primero consulta el sp de cada una de las validaciones que esten activas y si trae una lista de contactos a los que se les debe alertar y un mensaje que deba decir la notifiacion 
+            // Por ese motivo se juntan ambas listas en una sola. Por un lado tenemos request.ListaContactos que es la lista de contactos que se creo en la configuracion de notificaciones y por otro lado lo que regrese el sp
+            if (objectArray != null)
+            {
+                if (objectArray.Count > 0)
+                {
+                    // Agrega los emails si es que existen
+                    if (objectArray[0].Emails.Count > 0)
+                    {
+                        for (int i = 0; i < objectArray[0].Emails.Count; i++)
+                        {
+                            if (!string.IsNullOrWhiteSpace(objectArray[0].Emails[i].EmailAddress))
+                            {
+                                listaContactos[0].Emails.Add(objectArray[0].Emails[i]);
+                            }
+                        }
+                    }
+                    // Agrega los phones si es que existen
+                    if (objectArray[0].Phones.Count > 0)
+                    {
+                        for (int i = 0; i < objectArray[0].Phones.Count; i++)
+                        {
+                            if (!string.IsNullOrWhiteSpace(objectArray[0].Phones[i].PhoneNumber))
+                            {
+                                listaContactos[0].Phones.Add(objectArray[0].Phones[i]);
+                            }
+                        }
+                    }
+                    // Agrega los users si es que existen
+                    if (objectArray[0].Users.Count > 0)
+                    {
+                        for (int i = 0; i < objectArray[0].Users.Count; i++)
+                        {
+                            if (objectArray[0].Users[i].UserId != 0)
+                            {
+                                listaContactos[0].Users.Add(objectArray[0].Users[i]);
+                            }
+                        }
+                    }
+                }
+            }
+
             /*
              * Deserializa el listado de notificaciones en un listado de string con el nombre de las notificaciones que se esperan realizar
             */
             NotificacionesLista notificacionesContainer = JsonConvert.DeserializeObject<NotificacionesLista>(request.Condiciones);
 
-            List<string> notificaciones = new List<string>();
+            List<string> notificaciones = [];
             foreach (NotificacionCadena notificacionCadena in notificacionesContainer.notificaciones)
             {
                 notificaciones.Add(notificacionCadena.notificacion);
@@ -115,80 +166,76 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                 notificaciones.ForEach(notificacion =>
                 {
                     // Se crea una alerta por cada tipo de notificacion
-                    Alerta alerta = new()
-                    {
-                        Id = 0,
-                        NotificacionesId = request.Id,
-                        FechaCreacionAlerta = Convert.ToDateTime(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fff")),
-                        TextoAlerta = "Texto de alerta de " + request.Nombre,
-                        Usuario = request.Usuario,
-                        Trail = request.Trail
-                    };
-                    Alerta alertaGuardada = alertaBusiness.Insertar(alerta);
                     switch (notificacion)
                     {
                         case "email":
-                            // Se recorre la lista de correos para enviar los emails usando una plantilla
-                            listaContactos[0].Emails.ForEach((emails) =>
+                            Console.WriteLine("Notificacion por email");
+                            if (listaContactos[0].Emails.Count > 0)
                             {
-                                Console.WriteLine("Notificacion por email");
-                                // Se crea el cliente para sendGrid
-                                var client = new SendGridClient(ApiKey);
-                                // Se usa el correo destinado para esto
-                                var from = new EmailAddress("angel@newlandapps.com", "Grupo FH");
-                                var subject = $"Alertamiento de {request.Nombre}";
-                                var to = new EmailAddress(emails.EmailAddress);
-                                var plainTextContent = "Alertamiento usando servicios de Twilio.";
-                                // Ruta del archivo HTML
-                                string rutaArchivo = @"..\FHL_SGD_Notificaciones_Api\Shared\AssetEmail.html";
-
-                                // Lee el contenido del archivo HTML y lo almacena en una cadena de texto
-                                string contenidoHTML = File.ReadAllText(rutaArchivo);
-                                contenidoHTML = contenidoHTML.Replace("{{TextAlert}}", $"Por este medio se le notifica que tiene una alerta de notificación '{request.Nombre}'. <br /> Para mayor información ingrese a la plataforma.");
-                                var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, contenidoHTML);
-                                // Se envia el email
-                                var response = client.SendEmailAsync(msg);
-                            });
+                                string json = JsonConvert.SerializeObject(listaContactos[0].Emails);
+                                Console.WriteLine("Lista contactos: " + json);
+                                // Se recorre la lista de correos para enviar los emails usando una plantilla
+                                listaContactos[0].Emails.ForEach(async (correo) =>
+                                {
+                                    Alerta alertaGuardada = CrearAlerta(0, request.Nombre, request.Usuario, request.Trail, alertaBusiness);
+                                    await Task.Delay(200);
+                                    // Envia el correo electronico
+                                    EnviarCorreoElectronico(request.Nombre, correo.EmailAddress.Trim(), InformacionAdicional);
+                                });
+                            }
                             break;
                         // Para el envio por user, inserta en la bandeja de notificaciones del usuario
                         case "user":
                             Console.WriteLine("Notificacion por user");
-                            Bandeja bandeja = new Bandeja() {
-                                Id = 0,
-                                ColaboradoresId = listaContactos[0].Users[0].UserId,
-                                AlertasId = alertaGuardada.Id,
-                                FechaCreacionAlerta = Convert.ToDateTime(alertaGuardada.FechaCreacionAlerta.ToString("yyyy-MM-ddTHH:mm:ss.fff")),
-                                FechaLlegada = Convert.ToDateTime(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fff")),
-                                Lectura = false,
-                                Usuario = request.Usuario,
-                                Trail = request.Trail
-                            };
-                            bandejaBusiness.Insertar(bandeja);
+                            if (listaContactos[0].Users.Count > 0)
+                            {
+                                // Se recorre la lista de correos para enviar los emails usando una plantilla
+                                listaContactos[0].Users.ForEach((usuario) =>
+                                {
+                                    Alerta alertaGuardada = CrearAlerta(0, request.Nombre, request.Usuario, request.Trail, alertaBusiness);
+
+                                    // Envia la notificacion a la bandeja del usuario
+                                    EnviarBandeja(usuario.UserId, alertaGuardada, request.Usuario, request.Trail, bandejaBusiness);
+                                });
+                            }
                             break;
                         // Para el envio por push
                         case "push":
                             Console.WriteLine("Notificacion por push");
+                            if (listaContactos[0].Users.Count > 0)
+                            {
+                                Alerta alertaGuardada = CrearAlerta(0, request.Nombre, request.Usuario, request.Trail, alertaBusiness);
+                            }
                             break;
                         // Para el envio por whatsapp, usa Twilio
                         case "whatsapp":
-                            string numeroFormato = $"whatsapp:+525584935123";
-
-                            TwilioClient.Init(AccountSid, AuthToken);
-                            var messageOptions = new CreateMessageOptions(new PhoneNumber(numeroFormato));
-                            messageOptions.From = new PhoneNumber($"whatsapp:+{NumeroServicio}");
-                            messageOptions.Body = "Prueba con Whatsapp";
-                            messageOptions.MediaUrl = [];
-                            var message = MessageResource.Create(messageOptions);
+                            Console.WriteLine("Notificacion por whatsapp");
+                            if (listaContactos[0].Phones.Count > 0)
+                            {
+                                listaContactos[0].Phones.ForEach(async (telefono) =>
+                                {
+                                    Alerta alertaGuardada = CrearAlerta(0, request.Nombre, request.Usuario, request.Trail, alertaBusiness);
+                                    // Valida si el telefono tiene lada si no debe agregarla
+                                    await Task.Delay(200);
+                                    // Envia el mensaje por Whatsapp
+                                    EnviarWhatsapp(AccountSid, AuthToken, request.Nombre, telefono.PhoneNumber.Trim(), InformacionAdicional);
+                                });
+                            }
                             break;
                         // Para el envio por sms, usa Twilio
                         case "sms":
-                            TwilioClient.Init(AccountSid, AuthToken);
-
-                            var messageResource = MessageResource.Create(
-                                body: "Prueba con SMS",
-                                from: new Twilio.Types.PhoneNumber($"+12137725593"),
-                                to: new Twilio.Types.PhoneNumber($"+{NumeroServicio}")
-                            );
+                            Console.WriteLine("Notificacion por sms");
+                            if (listaContactos[0].Phones.Count > 0)
+                            {
+                                listaContactos[0].Phones.ForEach(async (telefono) =>
+                                {
+                                    Alerta alertaGuardada = CrearAlerta(0, request.Nombre, request.Usuario, request.Trail, alertaBusiness);
+                                    // Valida si el telefono tiene lada si no debe agregarla
+                                    await Task.Delay(200);
+                                    // Envia el mensaje por SMS
+                                    EnviarSMS(AccountSid, AuthToken, request.Nombre, telefono.PhoneNumber.Trim(), InformacionAdicional);
+                                });
+                            }
                             break;
                     }
                 });
@@ -201,7 +248,7 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                 // Se modifica el campo reglas
                 request.Reglas = JsonConvert.SerializeObject(regla);
                 // Se actualiza la notificacion
-                notificacionBusiness.Actualizar(request);
+                _ = notificacionBusiness.Actualizar(request);
 
                 respuesta.Status = 200;
                 respuesta.Message = "El proceso se ejecutó correctamente.";
@@ -218,6 +265,102 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
             }
 
             return respuesta;
+        }
+
+        private static Alerta CrearAlerta(long Id, string Nombre, string Usuario, string Trail, AlertaBusiness alertaBusiness)
+        {
+            Alerta alerta = new()
+            {
+                Id = 0,
+                NotificacionesId = Id,
+                FechaCreacionAlerta = Convert.ToDateTime(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fff")),
+                TextoAlerta = "Texto de alerta de " + Nombre,
+                Usuario = Usuario,
+                Trail = Trail
+            };
+            Alerta alertaGuardada = alertaBusiness.Insertar(alerta);
+            return alertaGuardada;
+        }
+
+        private void EnviarSMS(string accountSid, string authToken, string TextoAlerta, string NumeroTelefonico, string InformacionExtra)
+        {
+            if (string.IsNullOrEmpty(accountSid))
+            {
+                throw new ArgumentException($"'{nameof(accountSid)}' no puede ser nulo ni estar vacío.", nameof(accountSid));
+            }
+
+            if (string.IsNullOrEmpty(authToken))
+            {
+                throw new ArgumentException($"'{nameof(authToken)}' no puede ser nulo ni estar vacío.", nameof(authToken));
+            }
+            string numeroFormato = NumeroTelefonico.StartsWith("521") ? $"+{NumeroTelefonico}" : $"+52{NumeroTelefonico}";
+            TwilioClient.Init(AccountSid, AuthToken);
+            MessageResource messageResource = MessageResource.Create(
+                body: $"Por este medio se le notifica que tiene una alerta de notificación de '{TextoAlerta}’. Para mayor información ingrese a la plataforma.",
+                from: new Twilio.Types.PhoneNumber($"+{NumeroServicio}"),
+                to: new Twilio.Types.PhoneNumber($"+{numeroFormato}")
+            );
+            Console.WriteLine("messageResource: " + JsonConvert.SerializeObject(messageResource));
+        }
+
+        private void EnviarWhatsapp(string accountSid, string authToken, string TextoAlerta, string NumeroTelefonico, string InformacionExtra)
+        {
+            if (string.IsNullOrEmpty(accountSid))
+            {
+                throw new ArgumentException($"'{nameof(accountSid)}' no puede ser nulo ni estar vacío.", nameof(accountSid));
+            }
+
+            if (string.IsNullOrEmpty(authToken))
+            {
+                throw new ArgumentException($"'{nameof(authToken)}' no puede ser nulo ni estar vacío.", nameof(authToken));
+            }
+
+            string numeroFormato = NumeroTelefonico.StartsWith("521") ? $"whatsapp:+{NumeroTelefonico}" : $"whatsapp:+52{NumeroTelefonico}";
+            TwilioClient.Init(AccountSid, AuthToken);
+            CreateMessageOptions messageOptions = new(new PhoneNumber(numeroFormato))
+            {
+                From = new PhoneNumber($"whatsapp:+{NumeroServicio}"),
+                Body = $"Por este medio se le notifica que tiene una alerta de notificación de '*{TextoAlerta}*'. \n {InformacionExtra} \n Para mayor información ingrese a la plataforma.",
+                MediaUrl = []
+            };
+            var response = MessageResource.Create(messageOptions);
+            Console.WriteLine("response: " + JsonConvert.SerializeObject(response));
+        }
+
+        private void EnviarCorreoElectronico(string TextoNotificacion, string CorreoElectronico, string InformacionExtra)
+        {
+            // Se crea el cliente para sendGrid
+            SendGridClient client = new(ApiKey);
+            // Se usa el correo destinado para esto
+            EmailAddress from = new("angelortiz0398@gmail.com", "Grupo FH");
+            string subject = $"Alertamiento de {TextoNotificacion}";
+            EmailAddress to = new(CorreoElectronico);
+            string plainTextContent = "Alertamiento usando servicios de Twilio.";
+            // Ruta del archivo HTML
+            string rutaArchivo = @"..\FHL_SGD_Notificaciones_Api\Shared\AssetEmail.html";
+
+            // Lee el contenido del archivo HTML y lo almacena en una cadena de texto
+            string contenidoHTML = File.ReadAllText(rutaArchivo);
+            contenidoHTML = contenidoHTML.Replace("{{TextAlert}}", $"Por este medio se le notifica que tiene una alerta de notificación de '{TextoNotificacion}'. <br /> {InformacionExtra} <br /> Para mayor información ingrese a la plataforma.");
+            SendGridMessage msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, contenidoHTML);
+            // Se envia el email
+            var response = client.SendEmailAsync(msg);
+        }
+
+        private static void EnviarBandeja(long UsuarioId, Alerta AlertaGuardada, string Usuario, string Trail, BandejaBusiness bandejaBusiness)
+        {
+            Bandeja bandeja = new()
+            {
+                Id = 0,
+                ColaboradoresId = UsuarioId,
+                AlertasId = AlertaGuardada.Id,
+                FechaCreacionAlerta = Convert.ToDateTime(AlertaGuardada.FechaCreacionAlerta.ToString("yyyy-MM-ddTHH:mm:ss.fff")),
+                FechaLlegada = Convert.ToDateTime(DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fff")),
+                Lectura = false,
+                Usuario = Usuario,
+                Trail = Trail
+            };
+            _ = bandejaBusiness.Insertar(bandeja);
         }
     }
 

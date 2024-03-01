@@ -182,13 +182,13 @@ namespace Notificaciones.Repositorio.ADO.Common
                 // Obtiene el resultado de la ejecución
                 if (reader.Read())
                 {
-                    respuesta.Data = reader["JsonSalida"].ToString();
-                    // Verifica si la columna "TotalRows" existe en el resultado
-                    if (availableColumns.Contains("TotalRows"))
+                    respuesta.Data = reader["Resultado"].ToString();
+                    // Verifica si la columna "ListaContactos" existe en el resultado
+                    if (availableColumns.Contains("ListaContactos"))
                     {
                         try
                         {
-                            respuesta.TotalRows = reader["TotalRows"] != DBNull.Value ? (int)reader["TotalRows"] : 0;
+                            ObjectArray = reader["ListaContactos"] != DBNull.Value ? JsonConvert.DeserializeObject<List<ListaContacto>>(reader["ListaContactos"].ToString()) : new();
                         }
                         catch (Exception ex)
                         {
@@ -196,12 +196,12 @@ namespace Notificaciones.Repositorio.ADO.Common
                             throw;
                         }
                     }
-                    // Verifica si la columna "TotalRows" existe en el resultado
-                    if (availableColumns.Contains("ListaContactos"))
+                    // Verifica si la columna "InformacionAdicional" existe en el resultado
+                    if (availableColumns.Contains("InformacionAdicional"))
                     {
                         try
                         {
-                            ObjectArray = reader["ListaContactos"] != DBNull.Value ? JsonConvert.DeserializeObject<List<ListaContacto>>(reader["ListaContactos"].ToString()) : new();
+                            respuesta.Message = reader["InformacionAdicional"] != DBNull.Value ? reader["InformacionAdicional"].ToString() : string.Empty;
                         }
                         catch (Exception ex)
                         {

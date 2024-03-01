@@ -563,7 +563,7 @@ namespace Notificaciones.Repositorio.ADO
             "[Notificaciones].[uspValidacionRiegosSeguridadNumeroSeries]",
             "[Notificaciones].[uspValidacionCreacionesManifiestos]",
             "[Notificaciones].[uspValidacionCostosCombustiblesDesactualizados]",
-            "[Notificaciones].[uspValidacionTarifasProximasVencer]",
+            "[Notificaciones].[uspValidacionTarifasProximasAVencer]",
             "[Notificaciones].[uspValidacionTarifasVencidasSinExistentes]",
             "[Notificaciones].[uspValidacionAsignacionesDispersionConMontosExcedidos]",
             "[Notificaciones].[uspValidacionGastosExcedidos]",

@@ -9,6 +9,6 @@ namespace Notificaciones.Repositorio.Contratos.Notificaciones
 {
     public interface IValidadorNotificacionRepositorio
     {
-        public bool ValidarAlertamientoNotificacion(out List<ListaContacto> objectArray, long notificacionId);
+        public bool ValidarAlertamientoNotificacion(out List<ListaContacto> objectArray, out string InformacionAdicional, long notificacionId, TimeSpan Intervalo);
     }
 }

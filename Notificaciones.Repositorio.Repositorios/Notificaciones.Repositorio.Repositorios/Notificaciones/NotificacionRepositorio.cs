@@ -71,6 +71,7 @@ namespace Notificaciones.Repositorio.Repositorios.Notificaciones
         public List<Notificacion> GetAll()
         {
             List<Notificacion> lista = [];
+
             var respuestaSP = new BaseData().accesor.SpExcuteJson(MethodsDB.QueryObtenerNotificacionesPaginado);
             lista = JsonConvert.DeserializeObject<List<Notificacion>>((string)respuestaSP.Data) ?? [];
             return lista;
