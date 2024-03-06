@@ -99,36 +99,45 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
             {
                 if (objectArray.Count > 0)
                 {
-                    // Agrega los emails si es que existen
-                    if (objectArray[0].Emails.Count > 0)
+                    if (objectArray[0].Emails != null)
                     {
-                        for (int i = 0; i < objectArray[0].Emails.Count; i++)
+                        // Agrega los emails si es que existen
+                        if (objectArray[0].Emails.Count > 0)
                         {
-                            if (!string.IsNullOrWhiteSpace(objectArray[0].Emails[i].EmailAddress))
+                            for (int i = 0; i < objectArray[0].Emails.Count; i++)
                             {
-                                listaContactos[0].Emails.Add(objectArray[0].Emails[i]);
+                                if (!string.IsNullOrWhiteSpace(objectArray[0].Emails[i].EmailAddress))
+                                {
+                                    listaContactos[0].Emails.Add(objectArray[0].Emails[i]);
+                                }
                             }
                         }
                     }
                     // Agrega los phones si es que existen
-                    if (objectArray[0].Phones.Count > 0)
+                    if (objectArray[0].Phones != null)
                     {
-                        for (int i = 0; i < objectArray[0].Phones.Count; i++)
+                        if (objectArray[0].Phones.Count > 0)
                         {
-                            if (!string.IsNullOrWhiteSpace(objectArray[0].Phones[i].PhoneNumber))
+                            for (int i = 0; i < objectArray[0].Phones.Count; i++)
                             {
-                                listaContactos[0].Phones.Add(objectArray[0].Phones[i]);
+                                if (!string.IsNullOrWhiteSpace(objectArray[0].Phones[i].PhoneNumber))
+                                {
+                                    listaContactos[0].Phones.Add(objectArray[0].Phones[i]);
+                                }
                             }
                         }
                     }
                     // Agrega los users si es que existen
-                    if (objectArray[0].Users.Count > 0)
+                    if (objectArray[0].Users != null)
                     {
-                        for (int i = 0; i < objectArray[0].Users.Count; i++)
+                        if (objectArray[0].Users.Count > 0)
                         {
-                            if (objectArray[0].Users[i].UserId != 0)
+                            for (int i = 0; i < objectArray[0].Users.Count; i++)
                             {
-                                listaContactos[0].Users.Add(objectArray[0].Users[i]);
+                                if (objectArray[0].Users[i].UserId != 0)
+                                {
+                                    listaContactos[0].Users.Add(objectArray[0].Users[i]);
+                                }
                             }
                         }
                     }
@@ -293,12 +302,12 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
             {
                 throw new ArgumentException($"'{nameof(authToken)}' no puede ser nulo ni estar vacío.", nameof(authToken));
             }
-            string numeroFormato = NumeroTelefonico.StartsWith("521") ? $"+{NumeroTelefonico}" : $"+52{NumeroTelefonico}";
+            string numeroSMS = NumeroTelefonico.StartsWith("521") ? $"+{NumeroTelefonico}" : $"+52{NumeroTelefonico}";
             TwilioClient.Init(AccountSid, AuthToken);
             MessageResource messageResource = MessageResource.Create(
-                body: $"Por este medio se le notifica que tiene una alerta de notificación de '{TextoAlerta}’. Para mayor información ingrese a la plataforma.",
+                body: $"Por este medio se le notifica que tiene una alerta de '{TextoAlerta}’. Para mayor información ingrese a la plataforma.",
                 from: new Twilio.Types.PhoneNumber($"+{NumeroServicio}"),
-                to: new Twilio.Types.PhoneNumber($"+{numeroFormato}")
+                to: new Twilio.Types.PhoneNumber($"{numeroSMS}")
             );
             Console.WriteLine("messageResource: " + JsonConvert.SerializeObject(messageResource));
         }
@@ -315,12 +324,13 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                 throw new ArgumentException($"'{nameof(authToken)}' no puede ser nulo ni estar vacío.", nameof(authToken));
             }
 
-            string numeroFormato = NumeroTelefonico.StartsWith("521") ? $"whatsapp:+{NumeroTelefonico}" : $"whatsapp:+52{NumeroTelefonico}";
+            string numeroWhatsapp = NumeroTelefonico.StartsWith("521") ? $"whatsapp:+{NumeroTelefonico}" : $"whatsapp:+521{NumeroTelefonico}";
             TwilioClient.Init(AccountSid, AuthToken);
-            CreateMessageOptions messageOptions = new(new PhoneNumber(numeroFormato))
+            CreateMessageOptions messageOptions = new(new PhoneNumber(numeroWhatsapp))
             {
+                ForceDelivery = true,
                 From = new PhoneNumber($"whatsapp:+{NumeroServicio}"),
-                Body = $"Por este medio se le notifica que tiene una alerta de notificación de '*{TextoAlerta}*'. \n {InformacionExtra} \n Para mayor información ingrese a la plataforma.",
+                Body = $"Por este medio se le notifica que tiene una alerta de notificación de **{TextoAlerta}**.\n{InformacionExtra}\nPara mayor información ingrese a la plataforma.",
                 MediaUrl = []
             };
             var response = MessageResource.Create(messageOptions);
