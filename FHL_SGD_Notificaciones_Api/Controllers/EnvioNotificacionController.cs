@@ -1,5 +1,4 @@
-﻿using AdministracionSGD.Services.Api.Controllers.Common;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Notificaciones.Modelo.Entidades.Notificaciones;
 using Notificaciones.Negocio.Negocios.Notificaciones;
 using Shared.Modelos;
@@ -13,7 +12,7 @@ namespace FHL_SGD_Notificaciones_Api.Controllers
     [Route("[controller]")]
     public class EnvioNotificacionController : Controller
     {
-        private EnvioViajeBusiness _bss { get; set; } = new();
+        private EnvioNotificacionBusiness _bss { get; set; } = new();
 
         /// <summary>
         /// Crea una notificacion usando Twilio por los medios que se le especifican por la request.

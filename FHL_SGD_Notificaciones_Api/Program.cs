@@ -1,10 +1,8 @@
-using AdministracionSGD.Modelos.Catalogos;
 using AdministracionSGD.Modelos.Notificaciones;
 using Microsoft.OpenApi.Models;
 using Notificaciones.Negocio.Common;
 using Notificaciones.Negocio.Negocios.Common;
 using Notificaciones.Negocio.Negocios.Notificaciones;
-using Notificaciones.Negocio.Notificaciones;
 using Notificaciones.Repositorio.Contratos.Common;
 using Notificaciones.Repositorio.Contratos.Notificaciones;
 using Notificaciones.Repositorio.Repositorios.Common;
@@ -45,7 +43,7 @@ builder.Services.AddSwaggerGen(c =>
     c.IgnoreObsoleteProperties();
 }
 );
-builder.Services.AddScoped<EnvioViajeBusiness>();
+builder.Services.AddScoped<EnvioNotificacionBusiness>();
 builder.Services.AddScoped<ValidadorNotificacionesBusiness>();
 builder.Services.AddScoped<IValidadorNotificacionRepositorio, ValidadorNotificacionRepositorio>();
 builder.Services.AddScoped<IAlertaRepositorio, AlertaRepositorio>();

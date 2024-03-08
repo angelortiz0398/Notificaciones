@@ -15,7 +15,7 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
 {
     public class ValidadorNotificacionesBusiness : GenericBusiness<Notificacion>
     {
-        private EnvioViajeBusiness EnvioViajeBusiness { get; set; } = new();
+        private EnvioNotificacionBusiness EnvioViajeBusiness { get; set; } = new();
 
         /// <summary>
         /// Metodo para validar si existen notificaciones activadas y si hay alguna que se deba alertar

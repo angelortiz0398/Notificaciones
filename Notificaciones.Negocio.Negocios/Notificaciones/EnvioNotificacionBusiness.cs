@@ -1,5 +1,4 @@
-﻿using AdministracionSGD.Modelos.Notificaciones;
-using FirebaseAdmin.Messaging;
+﻿using FirebaseAdmin.Messaging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.JSInterop;
 using Newtonsoft.Json;
@@ -19,14 +18,13 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Twilio;
 using Twilio.Rest.Api.V2010.Account;
-using Twilio.TwiML.Messaging;
 using Alerta = Notificaciones.Modelo.Entidades.Notificaciones.Alerta;
 using Notificacion = Notificaciones.Modelo.Entidades.Notificaciones.Notificacion;
 using PhoneNumber = Twilio.Types.PhoneNumber;
 
 namespace Notificaciones.Negocio.Negocios.Notificaciones
 {
-    public class EnvioViajeBusiness : GenericBusiness<Notificacion>
+    public class EnvioNotificacionBusiness : GenericBusiness<Notificacion>
     {
         protected IConfigurationRoot Configuration { get; set; }
         protected IJSRuntime Runtime { get; set; }
@@ -40,7 +38,7 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
         /// <summary>
         /// Se obtiene la informacion para el consumo de la api de Twilio desde los appsettings
         /// </summary>
-        public EnvioViajeBusiness()
+        public EnvioNotificacionBusiness()
         {
             string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
