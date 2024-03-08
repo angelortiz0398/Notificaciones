@@ -15,5 +15,5 @@ Le damos a editar y luego colocamos esto en su interior:
 
 Donde "@InstallUtil  C:\Users\Usuario\source\repos\FHL_SGD_Notificaciones\FHL_SGD_Notificaciones_Service\bin\Debug\FHL_SGD_Notificaciones_Service.exe" lo remplazaremos con la ubicacion donde se encuentre el ejecutable resultante de la compilacion de FHL_SGD_Notificaciones_Service. 
 
-#¿Cómo crear la base de datos?
+# ¿Cómo crear la base de datos?
 Abrir la solucion FHL_SGD_Notificaciones_BD, el cual contendrá todos los scripts para creación de tablas, usuario, stored procedures y esquemas que se necesitan. Colocar la cadena de conexión de una instancia sql server en la configuración del proyecto de modo que todos los scripts se ejecuten en ella.
