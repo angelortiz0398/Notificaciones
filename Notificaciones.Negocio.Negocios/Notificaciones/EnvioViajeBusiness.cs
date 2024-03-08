@@ -1,5 +1,4 @@
-﻿using AdministracionSGD.Modelos.Despachos;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.JSInterop;
 using Newtonsoft.Json;
 using Notificaciones.Modelo.Entidades.Notificaciones;
@@ -14,11 +13,10 @@ using Shared.Modelos;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Twilio;
 using Twilio.Rest.Api.V2010.Account;
-using Twilio.TwiML.Messaging;
 using Alerta = Notificaciones.Modelo.Entidades.Notificaciones.Alerta;
 using Notificacion = Notificaciones.Modelo.Entidades.Notificaciones.Notificacion;
 using PhoneNumber = Twilio.Types.PhoneNumber;
@@ -227,7 +225,7 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                                     // Valida si el telefono tiene lada si no debe agregarla
                                     await Task.Delay(200);
                                     // Envia el mensaje por Whatsapp
-                                    EnviarWhatsapp(AccountSid, AuthToken, request.Nombre, telefono.PhoneNumber.Trim(), InformacionAdicional);
+                                    EnviarWhatsapp(request.Nombre, telefono.PhoneNumber.Trim(), InformacionAdicional);
                                 });
                             }
                             break;
@@ -242,7 +240,7 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                                     // Valida si el telefono tiene lada si no debe agregarla
                                     await Task.Delay(200);
                                     // Envia el mensaje por SMS
-                                    EnviarSMS(AccountSid, AuthToken, request.Nombre, telefono.PhoneNumber.Trim(), InformacionAdicional);
+                                    EnviarSMS(request.Nombre, telefono.PhoneNumber.Trim(), InformacionAdicional);
                                 });
                             }
                             break;
@@ -276,6 +274,15 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
             return respuesta;
         }
 
+        /// <summary>
+        /// Funcion que crea un registro en la tabla de Alertas
+        /// </summary>
+        /// <param name="Id"></param>
+        /// <param name="Nombre"></param>
+        /// <param name="Usuario"></param>
+        /// <param name="Trail"></param>
+        /// <param name="alertaBusiness"></param>
+        /// <returns></returns>
         private static Alerta CrearAlerta(long Id, string Nombre, string Usuario, string Trail, AlertaBusiness alertaBusiness)
         {
             Alerta alerta = new()
@@ -291,72 +298,121 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
             return alertaGuardada;
         }
 
-        private void EnviarSMS(string accountSid, string authToken, string TextoAlerta, string NumeroTelefonico, string InformacionExtra)
+        /// <summary>
+        /// Funcion para enviar mensajes por SMS
+        /// </summary>
+        /// <param name="TextoAlerta"></param>
+        /// <param name="NumeroTelefonico"></param>
+        /// <param name="InformacionExtra"></param>
+        /// <exception cref="ArgumentException"></exception>
+        private void EnviarSMS(string TextoAlerta, string NumeroTelefonico, string InformacionExtra)
         {
-            if (string.IsNullOrEmpty(accountSid))
+            if (!string.IsNullOrWhiteSpace(NumeroTelefonico))
             {
-                throw new ArgumentException($"'{nameof(accountSid)}' no puede ser nulo ni estar vacío.", nameof(accountSid));
-            }
+                if (EsNumeroTelefonicoValido(NumeroTelefonico))
+                {
+                    if (string.IsNullOrEmpty(AccountSid))
+                    {
+                        throw new ArgumentException($"'{nameof(AccountSid)}' no puede ser nulo ni estar vacío.", nameof(AccountSid));
+                    }
 
-            if (string.IsNullOrEmpty(authToken))
-            {
-                throw new ArgumentException($"'{nameof(authToken)}' no puede ser nulo ni estar vacío.", nameof(authToken));
+                    if (string.IsNullOrEmpty(AuthToken))
+                    {
+                        throw new ArgumentException($"'{nameof(AuthToken)}' no puede ser nulo ni estar vacío.", nameof(AuthToken));
+                    }
+
+                    string numeroSMS = NumeroTelefonico.StartsWith("521") ? $"+{NumeroTelefonico}" : $"+52{NumeroTelefonico}";
+                    TwilioClient.Init(AccountSid, AuthToken);
+                    MessageResource messageResource = MessageResource.Create(
+                        body: $"Por este medio se le notifica que tiene una alerta de '{TextoAlerta}’. Para mayor información ingrese a la plataforma.",
+                        from: new Twilio.Types.PhoneNumber($"+{NumeroServicio}"),
+                        to: new Twilio.Types.PhoneNumber($"{numeroSMS}")
+                    );
+                    Console.WriteLine("messageResource: " + JsonConvert.SerializeObject(messageResource));
+                }
             }
-            string numeroSMS = NumeroTelefonico.StartsWith("521") ? $"+{NumeroTelefonico}" : $"+52{NumeroTelefonico}";
-            TwilioClient.Init(AccountSid, AuthToken);
-            MessageResource messageResource = MessageResource.Create(
-                body: $"Por este medio se le notifica que tiene una alerta de '{TextoAlerta}’. Para mayor información ingrese a la plataforma.",
-                from: new Twilio.Types.PhoneNumber($"+{NumeroServicio}"),
-                to: new Twilio.Types.PhoneNumber($"{numeroSMS}")
-            );
-            Console.WriteLine("messageResource: " + JsonConvert.SerializeObject(messageResource));
         }
 
-        private void EnviarWhatsapp(string accountSid, string authToken, string TextoAlerta, string NumeroTelefonico, string InformacionExtra)
+        /// <summary>
+        /// Funcion para enviar mensajes por Whatsapp
+        /// </summary>
+        /// <param name="TextoAlerta"></param>
+        /// <param name="NumeroTelefonico"></param>
+        /// <param name="InformacionExtra"></param>
+        /// <exception cref="ArgumentException"></exception>
+        private void EnviarWhatsapp(string TextoAlerta, string NumeroTelefonico, string InformacionExtra)
         {
-            if (string.IsNullOrEmpty(accountSid))
+            if (!string.IsNullOrWhiteSpace(NumeroTelefonico))
             {
-                throw new ArgumentException($"'{nameof(accountSid)}' no puede ser nulo ni estar vacío.", nameof(accountSid));
-            }
+                if (EsNumeroTelefonicoValido(NumeroTelefonico))
+                {
+                    if (string.IsNullOrEmpty(AccountSid))
+                    {
+                        throw new ArgumentException($"'{nameof(AccountSid)}' no puede ser nulo ni estar vacío.", nameof(AccountSid));
+                    }
 
-            if (string.IsNullOrEmpty(authToken))
-            {
-                throw new ArgumentException($"'{nameof(authToken)}' no puede ser nulo ni estar vacío.", nameof(authToken));
-            }
+                    if (string.IsNullOrEmpty(AuthToken))
+                    {
+                        throw new ArgumentException($"'{nameof(AuthToken)}' no puede ser nulo ni estar vacío.", nameof(AuthToken));
+                    }
 
-            string numeroWhatsapp = NumeroTelefonico.StartsWith("521") ? $"whatsapp:+{NumeroTelefonico}" : $"whatsapp:+521{NumeroTelefonico}";
-            TwilioClient.Init(AccountSid, AuthToken);
-            CreateMessageOptions messageOptions = new(new PhoneNumber(numeroWhatsapp))
-            {
-                ForceDelivery = true,
-                From = new PhoneNumber($"whatsapp:+{NumeroServicio}"),
-                Body = $"Por este medio se le notifica que tiene una alerta de notificación de **{TextoAlerta}**.\n{InformacionExtra}\nPara mayor información ingrese a la plataforma.",
-                MediaUrl = []
-            };
-            var response = MessageResource.Create(messageOptions);
-            Console.WriteLine("response: " + JsonConvert.SerializeObject(response));
+                    string numeroWhatsapp = NumeroTelefonico.StartsWith("521") ? $"whatsapp:+{NumeroTelefonico}" : $"whatsapp:+521{NumeroTelefonico}";
+                    TwilioClient.Init(AccountSid, AuthToken);
+                    CreateMessageOptions messageOptions = new(new PhoneNumber(numeroWhatsapp))
+                    {
+                        ForceDelivery = true,
+                        From = new PhoneNumber($"whatsapp:+{NumeroServicio}"),
+                        Body = $"Por este medio se le notifica que tiene una alerta de notificación de **{TextoAlerta}**.\n{InformacionExtra}\nPara mayor información ingrese a la plataforma.",
+                        MediaUrl = []
+                    };
+                    var response = MessageResource.Create(messageOptions);
+                    Console.WriteLine("response: " + JsonConvert.SerializeObject(response));
+                }
+            }
         }
 
+        /// <summary>
+        /// Funcion para enviar los correos electronicos
+        /// </summary>
+        /// <param name="TextoNotificacion"></param>
+        /// <param name="CorreoElectronico"></param>
+        /// <param name="InformacionExtra"></param>
         private void EnviarCorreoElectronico(string TextoNotificacion, string CorreoElectronico, string InformacionExtra)
         {
-            // Se crea el cliente para sendGrid
-            SendGridClient client = new(ApiKey);
-            // Se usa el correo destinado para esto
-            EmailAddress from = new("angelortiz0398@gmail.com", "Grupo FH");
-            string subject = $"Alertamiento de {TextoNotificacion}";
-            EmailAddress to = new(CorreoElectronico);
-            string plainTextContent = "Alertamiento usando servicios de Twilio.";
-            // Ruta del archivo HTML
-            string rutaArchivo = @"..\FHL_SGD_Notificaciones_Api\Shared\AssetEmail.html";
+            // Verifica si el correo es diferente de una cadena de texto nula o con caracteres de espacio
+            if (!string.IsNullOrWhiteSpace(CorreoElectronico))
+            {
+                // Valida si es un correo electronico valido
+                if (EsCorreoValido(CorreoElectronico))
+                {
+                    // Se crea el cliente para sendGrid
+                    SendGridClient client = new(ApiKey);
+                    // Se usa el correo destinado para esto
+                    EmailAddress from = new("angelortiz0398@gmail.com", "Grupo FH");
+                    string subject = $"Alertamiento de {TextoNotificacion}";
+                    EmailAddress to = new(CorreoElectronico);
+                    string plainTextContent = "Alertamiento usando servicios de Twilio.";
+                    // Ruta del archivo HTML
+                    string rutaArchivo = @"..\FHL_SGD_Notificaciones_Api\Shared\AssetEmail.html";
 
-            // Lee el contenido del archivo HTML y lo almacena en una cadena de texto
-            string contenidoHTML = File.ReadAllText(rutaArchivo);
-            contenidoHTML = contenidoHTML.Replace("{{TextAlert}}", $"Por este medio se le notifica que tiene una alerta de notificación de '{TextoNotificacion}'. <br /> {InformacionExtra} <br /> Para mayor información ingrese a la plataforma.");
-            SendGridMessage msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, contenidoHTML);
-            // Se envia el email
-            var response = client.SendEmailAsync(msg);
+                    // Lee el contenido del archivo HTML y lo almacena en una cadena de texto
+                    string contenidoHTML = File.ReadAllText(rutaArchivo);
+                    contenidoHTML = contenidoHTML.Replace("{{TextAlert}}", $"Por este medio se le notifica que tiene una alerta de notificación de '{TextoNotificacion}'. <br /> {InformacionExtra} <br /> Para mayor información ingrese a la plataforma.");
+                    SendGridMessage msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, contenidoHTML);
+                    // Se envia el email
+                    var response = client.SendEmailAsync(msg);
+                }
+            }
         }
 
+        /// <summary>
+        /// Funcion para insertar un registro a la bandeja de usuario
+        /// </summary>
+        /// <param name="UsuarioId"></param>
+        /// <param name="AlertaGuardada"></param>
+        /// <param name="Usuario"></param>
+        /// <param name="Trail"></param>
+        /// <param name="bandejaBusiness"></param>
         private static void EnviarBandeja(long UsuarioId, Alerta AlertaGuardada, string Usuario, string Trail, BandejaBusiness bandejaBusiness)
         {
             Bandeja bandeja = new()
@@ -371,6 +427,37 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                 Trail = Trail
             };
             _ = bandejaBusiness.Insertar(bandeja);
+        }
+
+        /// <summary>
+        /// Funcion para validar si una cadena de texto es un correo electronico valido para el estandar RFC2822
+        /// </summary>
+        /// <param name="correo"></param>
+        /// <returns></returns>
+        private static bool EsCorreoValido(string correo)
+        {
+            // Expresión regular para validar un correo electrónico
+            // RFC2822 para validacion de email
+            string expresionRegular = @"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?";
+
+            // Valida si la cadena coincide con la expresión regular
+            Regex regex = new(expresionRegular);
+            return regex.IsMatch(correo);
+        }
+
+        /// <summary>
+        /// Funcion para validar si una cadena de texto es un numero telefonico valido
+        /// </summary>
+        /// <param name="numeroTelefonico"></param>
+        /// <returns></returns>
+        private static bool EsNumeroTelefonicoValido(string numeroTelefonico)
+        {
+            // Expresión regular para validar un numero telefonico valido
+            string expresionRegular = @"^\s*(?:\+?(\d{1,3}))?([-. (]*(\d{3})[-. )]*)?((\d{3})[-. ]*(\d{2,4})(?:[-.x ]*(\d+))?)\s*$";
+
+            // Valida si la cadena coincide con la expresión regular
+            Regex regex = new(expresionRegular);
+            return regex.IsMatch(numeroTelefonico);
         }
     }
 
