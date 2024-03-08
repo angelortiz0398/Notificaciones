@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using AdministracionSGD.Modelos.Notificaciones;
+using FirebaseAdmin.Messaging;
+using Microsoft.Extensions.Configuration;
 using Microsoft.JSInterop;
 using Newtonsoft.Json;
 using Notificaciones.Modelo.Entidades.Notificaciones;
@@ -17,6 +19,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Twilio;
 using Twilio.Rest.Api.V2010.Account;
+using Twilio.TwiML.Messaging;
 using Alerta = Notificaciones.Modelo.Entidades.Notificaciones.Alerta;
 using Notificacion = Notificaciones.Modelo.Entidades.Notificaciones.Notificacion;
 using PhoneNumber = Twilio.Types.PhoneNumber;
@@ -31,6 +34,7 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
         private string AuthToken { get; set; }
         private string NumeroServicio { get; set; }
         private string ApiKey { get; set; }
+        private string FireBaseToken { get; set; }
 
 
         /// <summary>
@@ -51,6 +55,7 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
             AuthToken = Configuration.GetSection("ApiURLS:authToken").Value;
             NumeroServicio = Configuration.GetSection("ApiURLS:numeroServicio").Value;
             ApiKey = Configuration.GetSection("ApiURLS:SENDGRID_API_KEY").Value;
+            FireBaseToken = Configuration.GetSection("ApiURLS:FireBaseToken").Value;
         }
 
 
@@ -162,7 +167,7 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
             NotificacionBusiness notificacionBusiness = new(NotificacionGenericRepo, NotificacionRepo);
             // Crea el objeto con el que se actualizara la Bandeja
             IBandejaRepositorio BandejaRepo = new BandejaRepositorio();
-            IGenericRepository<Bandeja> BandejaGenericRepo = new GenericRepository<Bandeja>();
+            IGenericRepository<Modelo.Entidades.Notificaciones.Bandeja> BandejaGenericRepo = new GenericRepository<Modelo.Entidades.Notificaciones.Bandeja>();
             BandejaBusiness bandejaBusiness = new(BandejaGenericRepo, BandejaRepo);
             // Se intenta hacer el proceso de enviar la notifiacion, crear la alerta y actualizar la notifiacion (por el tema de las reglas)
             try
@@ -212,6 +217,8 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                             if (listaContactos[0].Users.Count > 0)
                             {
                                 Alerta alertaGuardada = CrearAlerta(0, request.Nombre, request.Usuario, request.Trail, alertaBusiness);
+                                string texto = $"Por este medio se le notifica que tiene una alerta de {request.Nombre}. Para mayor información ingrese a la plataforma";
+                                EnviarPushNotificacion(request.Nombre, texto);
                             }
                             break;
                         // Para el envio por whatsapp, usa Twilio
@@ -415,7 +422,7 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
         /// <param name="bandejaBusiness"></param>
         private static void EnviarBandeja(long UsuarioId, Alerta AlertaGuardada, string Usuario, string Trail, BandejaBusiness bandejaBusiness)
         {
-            Bandeja bandeja = new()
+            Modelo.Entidades.Notificaciones.Bandeja bandeja = new()
             {
                 Id = 0,
                 ColaboradoresId = UsuarioId,
@@ -427,6 +434,37 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                 Trail = Trail
             };
             _ = bandejaBusiness.Insertar(bandeja);
+        }
+
+        /// <summary>
+        /// Funcion para enviar notificaciones del tipo push notification usando los servicios de FireBase
+        /// </summary>
+        /// <param name="Titulo"></param>
+        /// <param name="TextoNotificacion"></param>
+        private async void EnviarPushNotificacion(string Titulo, string TextoNotificacion)
+        {
+            // This registration token comes from the client FCM SDKs.
+            var registrationToken = FireBaseToken;
+            // The topic name can be optionally prefixed with "/topics/".
+            var topic = "all";
+            // See documentation on defining a message payload.
+            var message = new FirebaseAdmin.Messaging.Message()
+            {
+                Data = new Dictionary<string, string>()
+                {
+                    { "title", Titulo },
+                    { "body", TextoNotificacion },
+                    { "image", "https://smaller-pictures.appspot.com/images/dreamstime_xxl_65780868_small.jpg" }
+                },
+                Token = registrationToken,
+                Topic = topic
+            };
+
+            // Send a message to the device corresponding to the provided
+            // registration token.
+            string response = await FirebaseMessaging.DefaultInstance.SendAsync(message);
+            // Response is a message ID string.
+            Console.WriteLine("Successfully sent message: " + response);
         }
 
         /// <summary>
