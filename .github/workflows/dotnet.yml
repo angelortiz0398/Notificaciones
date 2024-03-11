@@ -13,11 +13,6 @@ jobs:
   build:
 
     runs-on: self-hosted
-    run: |
-      $InstallPath = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise"
-      $WorkLoads = '--add Microsoft.Net.Component.4.8.1.SDK --add Microsoft.Net.Component.4.8.1.TargetingPack -add Microsoft.Net.ComponentGroup.4.8.1.DeveloperTools'
-      $Arguments = ('/c', "vs_installer.exe", 'modify', '--installPath', "`"$InstallPath`"", $WorkLoads, '--quiet', '--norestart', '--nocache')
-      $process = Start-Process -FilePath cmd.exe -ArgumentList $Arguments -Wait -PassThru -WindowStyle Hidden
 
     steps:
     - uses: actions/checkout@v3
@@ -25,6 +20,14 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 8.0.x
+    - name: Install DNF 4.8.1 packs
+      shell: pwsh
+      working-directory: "C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer"
+      run: |
+        $InstallPath = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise"
+        $WorkLoads = '--add Microsoft.Net.Component.4.8.1.SDK --add Microsoft.Net.Component.4.8.1.TargetingPack -add Microsoft.Net.ComponentGroup.4.8.1.DeveloperTools'
+        $Arguments = ('/c', "vs_installer.exe", 'modify', '--installPath', "`"$InstallPath`"", $WorkLoads, '--quiet', '--norestart', '--nocache')
+        $process = Start-Process -FilePath cmd.exe -ArgumentList $Arguments -Wait -PassThru -WindowStyle Hidden
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
