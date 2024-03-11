@@ -1,15 +1,14 @@
 ﻿using Newtonsoft.Json;
+using Notificaciones.Modelo.Entidades.Generales;
 using Notificaciones.Modelo.Entidades.Notificaciones;
 using Notificaciones.Negocio.Negocios.Common;
 using Notificaciones.Repositorio.Contratos.Common;
 using Notificaciones.Repositorio.Contratos.Notificaciones;
 using Notificaciones.Repositorio.Repositorios.Common;
 using Notificaciones.Repositorio.Repositorios.Notificaciones;
-using Shared.Modelos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace Notificaciones.Negocio.Negocios.Notificaciones
 {
@@ -25,7 +24,7 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
         public Respuesta ValidarNotificaciones(DateTime FechaHoraValidacion)
         {
             Console.WriteLine("Ejcucion de ValidarNotificaciones a las " + FechaHoraValidacion.ToString("yyyy-MM-ddTHH:mm:ss.fff"));
-            Respuesta respuesta = new("ValidarNotificaciones") { Status = 400, Message = "No se enviaron los parametros necesarios" };
+            Respuesta respuesta = new("ValidarNotificaciones") { Status = 500, Message = "Error en el servidor." };
             // Crea el objeto (business) con el que se revisaran las notificaciones y saber cuales estan prendidas
             INotificacionRepositorio NotificacionRepo = new NotificacionRepositorio();
             IGenericRepository<Notificacion> NotificacionGenericRepo = new GenericRepository<Notificacion>();
@@ -71,16 +70,27 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                         // Se actualiza el estatus de la respuesta y su mensaje
                         respuesta.Status = 200;
                         respuesta.Message = "Proceso ejecutado correctamente.";
+                        respuesta.Data = listaNotificaciones;
                         respuesta.Function = "ValidarNotificaciones";
                         respuesta.timeMeasure.Stop();
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
+                        // Si fallo la ejecucion de algun sp o de un servicio de Twilio
                         respuesta.Status = 500;
-                        respuesta.Message = "Falló ejecución del proceso.";
+                        respuesta.Message = $"Falló ejecución del proceso: {ex.Message}";
                         respuesta.Function = "ValidarNotificaciones";
+                        respuesta.Data = ex.Data;
                         respuesta.timeMeasure.Stop();
                     }
+                }
+                else
+                {
+                    // Si no hay ninguna notificacion activada
+                    respuesta.Status = 200;
+                    respuesta.Message = "No hay notificaciones activadas qué alertar.";
+                    respuesta.Data = listaNotificaciones;
+                    respuesta.timeMeasure.Stop();
                 }
             }
             return respuesta;

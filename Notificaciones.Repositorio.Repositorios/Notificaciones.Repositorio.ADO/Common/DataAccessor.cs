@@ -1,5 +1,4 @@
-﻿using AdministracionSGD.Modelos.Clientes;
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Notificaciones.Modelo.Entidades.Notificaciones;
 using Shared.Modelos;

@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.JSInterop;
 using Newtonsoft.Json;
+using Notificaciones.Modelo.Entidades.Generales;
 using Notificaciones.Modelo.Entidades.Notificaciones;
 using Notificaciones.Negocio.Negocios.Common;
 using Notificaciones.Repositorio.Contratos.Common;
@@ -10,7 +11,6 @@ using Notificaciones.Repositorio.Repositorios.Common;
 using Notificaciones.Repositorio.Repositorios.Notificaciones;
 using SendGrid;
 using SendGrid.Helpers.Mail;
-using Shared.Modelos;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -441,28 +441,35 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
         /// <param name="TextoNotificacion"></param>
         private async void EnviarPushNotificacion(string Titulo, string TextoNotificacion)
         {
-            // This registration token comes from the client FCM SDKs.
-            var registrationToken = FireBaseToken;
-            // The topic name can be optionally prefixed with "/topics/".
-            var topic = "all";
-            // See documentation on defining a message payload.
-            var message = new FirebaseAdmin.Messaging.Message()
+            try
             {
-                Data = new Dictionary<string, string>()
+                // This registration token comes from the client FCM SDKs.
+                var registrationToken = FireBaseToken;
+                // The topic name can be optionally prefixed with "/topics/".
+                var topic = "all";
+                // See documentation on defining a message payload.
+                var message = new FirebaseAdmin.Messaging.Message()
                 {
-                    { "title", Titulo },
-                    { "body", TextoNotificacion },
-                    { "image", "https://smaller-pictures.appspot.com/images/dreamstime_xxl_65780868_small.jpg" }
-                },
-                Token = registrationToken,
-                Topic = topic
-            };
+                    Data = new Dictionary<string, string>()
+                    {
+                        { "title", Titulo },
+                        { "body", TextoNotificacion },
+                        { "image", "https://smaller-pictures.appspot.com/images/dreamstime_xxl_65780868_small.jpg" }
+                    },
+                    Token = registrationToken,
+                    Topic = topic
+                };
 
-            // Send a message to the device corresponding to the provided
-            // registration token.
-            string response = await FirebaseMessaging.DefaultInstance.SendAsync(message);
-            // Response is a message ID string.
-            Console.WriteLine("Successfully sent message: " + response);
+                // Send a message to the device corresponding to the provided
+                // registration token.
+                string response = await FirebaseMessaging.DefaultInstance.SendAsync(message);
+                // Response is a message ID string.
+                Console.WriteLine("Successfully sent message: " + response);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
         /// <summary>

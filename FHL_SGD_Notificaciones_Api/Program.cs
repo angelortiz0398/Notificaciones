@@ -1,5 +1,5 @@
-using AdministracionSGD.Modelos.Notificaciones;
 using Microsoft.OpenApi.Models;
+using Notificaciones.Modelo.Entidades.Notificaciones;
 using Notificaciones.Negocio.Common;
 using Notificaciones.Negocio.Negocios.Common;
 using Notificaciones.Negocio.Negocios.Notificaciones;

@@ -1,5 +1,4 @@
-﻿using AdministracionSGD.Modelos.Despachos;
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
 using Notificaciones.Modelo.Entidades.Notificaciones;
 using Notificaciones.Repositorio.ADO;
@@ -83,10 +82,10 @@ namespace Notificaciones.Repositorio.Repositorios.Notificaciones
                 IEnumerable<SqlParameter> parameters = new List<SqlParameter>(new List<SqlParameter> { comandoId });
 
 
-                var respuestaSP = new BaseData().accesor.SpExcuteJson(MethodsDB.QueryEliminarDocumentoTicket, parameters);
+                var respuestaSP = new BaseData().accesor.SpExcuteJson(MethodsDB.QueryEliminarAlertas, parameters);
                 if (respuestaSP != null)
                 {
-                    respuesta.Data = new DocumentoTicket();
+                    respuesta.Data = new Alerta();
                     respuesta.TotalRows = respuestaSP.TotalRows;
                     respuesta.Message = respuestaSP.Data.ToString();
                     respuesta.PageIndex = null;

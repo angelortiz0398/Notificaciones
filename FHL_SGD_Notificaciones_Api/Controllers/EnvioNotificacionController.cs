@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Notificaciones.Modelo.Entidades.Generales;
 using Notificaciones.Modelo.Entidades.Notificaciones;
 using Notificaciones.Negocio.Negocios.Notificaciones;
-using Shared.Modelos;
 
 namespace FHL_SGD_Notificaciones_Api.Controllers
 {
@@ -26,6 +26,11 @@ namespace FHL_SGD_Notificaciones_Api.Controllers
         /// </value>
         /// </example>
         [HttpPost("CreacionNotificacion")]
+        [ProducesResponseType(typeof(Respuesta), 200)]
+        [ProducesResponseType(typeof(Respuesta), 400)]
+        [ProducesResponseType(typeof(Respuesta), 500)]
+        [Produces("application/json")]
+        [FormatFilter]
         public Respuesta CreacionNotificacion(Notificacion request)
         {
             return _bss.CreacionNotificacion(request);

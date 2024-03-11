@@ -30,8 +30,9 @@ namespace Notificaciones.Repositorio.Repositorios.Notificaciones
                 InformacionAdicional = respuestaSP.Message;
                 resultado = Convert.ToBoolean(respuestaSP.Data);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                InformacionAdicional = ex.Message;
                 throw;
             }
             return resultado;
