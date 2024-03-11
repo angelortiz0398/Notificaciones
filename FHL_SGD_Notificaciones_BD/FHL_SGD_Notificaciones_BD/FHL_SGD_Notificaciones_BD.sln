@@ -1,0 +1,27 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34607.119
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "FHL_SGD_Notificaciones_BD", "FHL_SGD_Notificaciones_BD.sqlproj", "{8FA64D58-8D2D-41DE-8DC2-3689AD71D1A8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8FA64D58-8D2D-41DE-8DC2-3689AD71D1A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8FA64D58-8D2D-41DE-8DC2-3689AD71D1A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8FA64D58-8D2D-41DE-8DC2-3689AD71D1A8}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{8FA64D58-8D2D-41DE-8DC2-3689AD71D1A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8FA64D58-8D2D-41DE-8DC2-3689AD71D1A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8FA64D58-8D2D-41DE-8DC2-3689AD71D1A8}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1429B907-1B68-43AE-AB85-99D9B7DC47AB}
+	EndGlobalSection
+EndGlobal
