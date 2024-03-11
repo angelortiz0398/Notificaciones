@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Notificaciones.Modelo.Entidades.Generales;
-using SSO.Autorizacion.Attributes;
-using System.Net.Http.Headers;
 
 namespace AdministracionSGD.Services.Api.Controllers.Common
 {
@@ -10,7 +8,6 @@ namespace AdministracionSGD.Services.Api.Controllers.Common
     /// 
     /// </summary>
     [ApiController]
-    [FHAuthorize]
     public abstract class BaseApiController : Controller
     {
         private InfoUsuario CurrentUser { get; set; }
@@ -34,13 +31,6 @@ namespace AdministracionSGD.Services.Api.Controllers.Common
             }
         }
 
-        internal AuthenticationHeaderValue Authorization
-        {
-            get
-            {
-                return SSO.Helpers.SSOUserHelpers.GetAuthorization(HttpContext);
-            }
-        }
 
 
         /// <summary>

@@ -29,13 +29,5 @@ namespace AdministracionSGD.Services.Api.Controllers.Common
             if (request == null || string.IsNullOrWhiteSpace(request.Trail))
                 throw new ApplicationException("El Trail del objeto está vacio");
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private void InjectAuthorization()
-        {
-            _bss.AddAuthorization(Authorization);
-        }
     }
 }
