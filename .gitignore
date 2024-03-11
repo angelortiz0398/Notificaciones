@@ -364,3 +364,5 @@ FodyWeavers.xsd
 /FHL_SGD_Notificaciones_Api/appsettings.Development.json
 /FHL_SGD_Notificaciones_Api/appsettings.Development.json
 /.gitignore
+/_diag/blocks
+/_work
