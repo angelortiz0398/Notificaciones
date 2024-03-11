@@ -1,5 +1,5 @@
-﻿using Notificaciones.Repositorio.Contratos.Common;
-using Shared.Modelos;
+﻿using Notificaciones.Modelo.Entidades.Generales;
+using Notificaciones.Repositorio.Contratos.Common;
 using System;
 using System.Collections.Generic;
 

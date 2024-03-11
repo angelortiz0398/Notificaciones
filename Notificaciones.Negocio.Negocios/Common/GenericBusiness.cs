@@ -1,7 +1,7 @@
-﻿using Notificaciones.Negocio.Common;
+﻿using Notificaciones.Modelo.Entidades.Generales;
+using Notificaciones.Negocio.Common;
 using Notificaciones.Repositorio.Contratos.Common;
 using Notificaciones.Repositorio.Repositorios.Common;
-using Shared.Modelos;
 using System;
 using System.Collections.Generic;
 using System.Net.Http.Headers;

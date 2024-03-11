@@ -1,6 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
+using Notificaciones.Modelo.Entidades.Generales;
 using Notificaciones.Modelo.Entidades.Notificaciones;
-using Shared.Modelos;
 using System.Data;
 
 namespace Notificaciones.Repositorio.ADO.Common

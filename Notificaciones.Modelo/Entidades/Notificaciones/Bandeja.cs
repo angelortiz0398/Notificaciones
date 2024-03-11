@@ -1,5 +1,5 @@
 ﻿using Notificaciones.Modelo.Entidades.Colaboradores;
-using Shared.Modelos;
+using Notificaciones.Modelo.Entidades.Generales;
 using System;
 
 namespace Notificaciones.Modelo.Entidades.Notificaciones

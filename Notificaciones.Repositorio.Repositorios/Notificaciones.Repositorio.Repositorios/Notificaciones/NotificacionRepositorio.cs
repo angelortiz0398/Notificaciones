@@ -1,12 +1,12 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Data.SqlClient;
+using Newtonsoft.Json;
+using Notificaciones.Modelo.Entidades.Generales;
 using Notificaciones.Modelo.Entidades.Notificaciones;
-using Notificaciones.Repositorio.ADO.Common;
 using Notificaciones.Repositorio.ADO;
+using Notificaciones.Repositorio.ADO.Common;
 using Notificaciones.Repositorio.Contratos.Notificaciones;
-using Shared.Modelos;
 using System;
 using System.Collections.Generic;
-using Microsoft.Data.SqlClient;
 
 namespace Notificaciones.Repositorio.Repositorios.Notificaciones
 {

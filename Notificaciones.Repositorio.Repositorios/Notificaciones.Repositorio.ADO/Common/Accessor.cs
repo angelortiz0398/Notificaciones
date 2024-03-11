@@ -2,8 +2,8 @@
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Notificaciones.Modelo.Entidades.Generales;
 using Notificaciones.Modelo.Entidades.Notificaciones;
-using Shared.Modelos;
 using System.Data;
 using System.Reflection;
 using SqlConnection = Microsoft.Data.SqlClient.SqlConnection;

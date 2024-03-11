@@ -1,7 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using Notificaciones.Modelo.Entidades.Generales;
 using Notificaciones.Modelo.Entidades.Notificaciones;
-using Shared.Modelos;
 using System.Data;
 using System.Reflection;
 

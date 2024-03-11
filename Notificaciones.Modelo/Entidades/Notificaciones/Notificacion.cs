@@ -1,5 +1,4 @@
-﻿using Shared.Modelos;
-using System;
+﻿using Notificaciones.Modelo.Entidades.Generales;
 
 namespace Notificaciones.Modelo.Entidades.Notificaciones
 {

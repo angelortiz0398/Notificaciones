@@ -1,4 +1,4 @@
-﻿using Shared.Modelos;
+﻿using Notificaciones.Modelo.Entidades.Generales;
 
 namespace Notificaciones.Modelo.Entidades.Notificaciones
 {

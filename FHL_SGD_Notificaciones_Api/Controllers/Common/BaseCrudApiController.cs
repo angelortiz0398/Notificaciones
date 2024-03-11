@@ -1,5 +1,5 @@
-﻿using Notificaciones.Negocio.Negocios.Common;
-using Shared.Modelos;
+﻿using Notificaciones.Modelo.Entidades.Generales;
+using Notificaciones.Negocio.Negocios.Common;
 
 namespace AdministracionSGD.Services.Api.Controllers.Common
 {

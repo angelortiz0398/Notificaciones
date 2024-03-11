@@ -21,7 +21,6 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.0" />
-    <PackageReference Include="BlazorComponents" Version="1.0.21" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="8.0.2" />
@@ -34,7 +33,6 @@
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="7.3.1" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="7.3.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="Shared.Modelos" Version="1.0.9" />
     <PackageReference Include="Sistemas.Modelos" Version="1.0.20" />
     <PackageReference Include="SSO.Autorizacion" Version="1.0.9" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
