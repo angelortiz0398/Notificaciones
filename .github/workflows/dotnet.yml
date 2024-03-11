@@ -21,7 +21,6 @@ jobs:
       with:
         dotnet-version: 8.0.x
     - name: Install DNF 4.8.1 packs
-      shell: pwsh
       working-directory: "C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer"
       run: |
         $InstallPath = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise"
