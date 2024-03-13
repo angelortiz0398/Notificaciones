@@ -1,4 +1,6 @@
-﻿using System;
+﻿using FHL_SGD_Notificaciones_Service.Shared;
+using Newtonsoft.Json;
+using System;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
@@ -58,7 +60,9 @@ namespace NotificacionesService
                         HttpResponseMessage response = await client.GetAsync(urlBase);
                         // Guardar la respuesta y verificar si el estatus de la respuesta fue diferente de 200 (Ok)
                         string responseBody = await response.Content.ReadAsStringAsync();
-                        if (response.StatusCode != HttpStatusCode.OK)
+                        RespuestaNotificacion respuesta = JsonConvert.DeserializeObject<RespuestaNotificacion>(responseBody);
+                        EventLog1.WriteEntry($"Respuesta: {responseBody}");
+                        if (respuesta.Status != 200)
                         {
                             EventLog1.WriteEntry($"Consulta a {urlBase} fallida. Respuesta: {responseBody}");
                         }

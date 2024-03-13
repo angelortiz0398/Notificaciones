@@ -10,6 +10,7 @@ namespace FHL_SGD_Notificaciones_Api.Controllers
     /// </summary>
     [ApiController]
     [Route("[controller]")]
+    [ApiExplorerSettings(GroupName = "EnvioNotificacion")]
     public class EnvioNotificacionController : Controller
     {
         private EnvioNotificacionBusiness _bss { get; set; } = new();
@@ -31,9 +32,9 @@ namespace FHL_SGD_Notificaciones_Api.Controllers
         [ProducesResponseType(typeof(Respuesta), 500)]
         [Produces("application/json")]
         [FormatFilter]
-        public Respuesta CreacionNotificacion(Notificacion request)
+        public async Task<Respuesta> CreacionNotificacion(Notificacion request)
         {
-            return _bss.CreacionNotificacion(request);
+            return await _bss.CreacionNotificacion(request);
         }
     }
 }

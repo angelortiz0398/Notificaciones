@@ -14,6 +14,7 @@ using SendGrid.Helpers.Mail;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Twilio;
@@ -21,6 +22,7 @@ using Twilio.Rest.Api.V2010.Account;
 using Alerta = Notificaciones.Modelo.Entidades.Notificaciones.Alerta;
 using Notificacion = Notificaciones.Modelo.Entidades.Notificaciones.Notificacion;
 using PhoneNumber = Twilio.Types.PhoneNumber;
+using Task = System.Threading.Tasks.Task;
 
 namespace Notificaciones.Negocio.Negocios.Notificaciones
 {
@@ -33,6 +35,9 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
         private string NumeroServicio { get; set; }
         private string ApiKey { get; set; }
         private string FireBaseToken { get; set; }
+        private int Errores { get; set; } = 0;
+        List<Respuesta> RespuestasFallidas { get; set; } = [];
+
 
 
         /// <summary>
@@ -64,7 +69,7 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
         /// <param name="objectArray"></param>
         /// <param name="InformacionAdicional"></param>
         /// <returns>Retorna una Respuesta, dependiendo si fue exitosa tendra estatus 200 (Exitoso), 400(Fallido por error del cliente, uno o varios campos quedaron vacios) o 500 (Error del servidor, tanto de la base de datos o de Twilio)</returns>
-        public Respuesta CreacionNotificacion(Notificacion request, List<ListaContacto> objectArray = null, string InformacionAdicional = null)
+        public async Task<Respuesta> CreacionNotificacion(Notificacion request, List<ListaContacto> objectArray = null, string InformacionAdicional = null)
         {
             Respuesta respuesta = new("CreacionNotificacion");
             /*
@@ -74,8 +79,9 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
             {
                 respuesta.Status = 400;
                 respuesta.Message = "No se adjuntó una lista de contactos o los medios para enviar las notificaciones.";
-                respuesta.Data = null;
+                respuesta.Data = "No se adjuntó una lista de contactos o los medios para enviar las notificaciones.";
                 respuesta.timeMeasure.Stop();
+                Errores++;
                 return respuesta;
             }
             /*
@@ -87,8 +93,9 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
             {
                 respuesta.Status = 400;
                 respuesta.Message = "La lista de contactos no tiene emails, ni teléfono, ni usuarios a quien notificar.";
-                respuesta.Data = null;
+                respuesta.Data = "La lista de contactos no tiene emails, ni teléfono, ni usuarios a quien notificar.";
                 respuesta.timeMeasure.Stop();
+                Errores++;
                 return respuesta;
             }
 
@@ -167,13 +174,19 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
             IBandejaRepositorio BandejaRepo = new BandejaRepositorio();
             IGenericRepository<Modelo.Entidades.Notificaciones.Bandeja> BandejaGenericRepo = new GenericRepository<Modelo.Entidades.Notificaciones.Bandeja>();
             BandejaBusiness bandejaBusiness = new(BandejaGenericRepo, BandejaRepo);
+
+            // Creacion de la variable que instancia a las tareas, de modo que se declaran las tareas y consumo de diferentes API pero no se esperan a que terminan
+            // Para que el funcionamiento del flujo sea asincrono. 
+            List<Task> TareasNotificaciones = [];
             // Se intenta hacer el proceso de enviar la notifiacion, crear la alerta y actualizar la notifiacion (por el tema de las reglas)
-            try
+            /*
+             * Recorre la lista de notificaciones para realizar el envio de la notificacion que le corresponde
+            */
+            notificaciones.ForEach(notificacion =>
             {
-                /*
-                 * Recorre la lista de notificaciones para realizar el envio de la notificacion que le corresponde
-                */
-                notificaciones.ForEach(notificacion =>
+                // Usa un bloque try catch por si en algun medio de comunicacion falla (Twilio o Firebase) y permitir el flujo de las demas alertamientos
+                // Se encuentra dentro del ForEach para que el flujo del programa no se detenga y continuar procesando las siguientes alertas
+                try
                 {
                     // Se crea una alerta por cada tipo de notificacion
                     switch (notificacion)
@@ -182,16 +195,17 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                             Console.WriteLine("Notificacion por email");
                             if (listaContactos[0].Emails.Count > 0)
                             {
-                                string json = JsonConvert.SerializeObject(listaContactos[0].Emails);
-                                Console.WriteLine("Lista contactos: " + json);
                                 // Se recorre la lista de correos para enviar los emails usando una plantilla
-                                listaContactos[0].Emails.ForEach(async (correo) =>
+                                listaContactos[0].Emails.ForEach(correo =>
                                 {
                                     Alerta alertaGuardada = CrearAlerta(0, request.Nombre, request.Usuario, request.Trail, alertaBusiness);
-                                    await Task.Delay(200);
-                                    // Envia el correo electronico
-                                    EnviarCorreoElectronico(request.Nombre, correo.EmailAddress.Trim(), InformacionAdicional);
-                                });
+                                    Task tareaCorreoElectronico = Task.Run(() =>
+                                        EnviarCorreoElectronico(request.Nombre, correo.EmailAddress.Trim(), InformacionAdicional)
+                                    );
+                                    TareasNotificaciones.Add(tareaCorreoElectronico);
+                                }
+                                );
+
                             }
                             break;
                         // Para el envio por user, inserta en la bandeja de notificaciones del usuario
@@ -200,12 +214,12 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                             if (listaContactos[0].Users.Count > 0)
                             {
                                 // Se recorre la lista de correos para enviar los emails usando una plantilla
-                                listaContactos[0].Users.ForEach((usuario) =>
+                                listaContactos[0].Users.ForEach(usuario =>
                                 {
                                     Alerta alertaGuardada = CrearAlerta(0, request.Nombre, request.Usuario, request.Trail, alertaBusiness);
-
-                                    // Envia la notificacion a la bandeja del usuario
-                                    EnviarBandeja(usuario.UserId, alertaGuardada, request.Usuario, request.Trail, bandejaBusiness);
+                                    Task tareaBandeja = Task.Run(() => EnviarBandeja(usuario.UserId, alertaGuardada, request.Usuario, request.Trail, bandejaBusiness)
+                                    );
+                                    TareasNotificaciones.Add(tareaBandeja);
                                 });
                             }
                             break;
@@ -216,7 +230,11 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                             {
                                 Alerta alertaGuardada = CrearAlerta(0, request.Nombre, request.Usuario, request.Trail, alertaBusiness);
                                 string texto = $"Por este medio se le notifica que tiene una alerta de {request.Nombre}. Para mayor información ingrese a la plataforma";
-                                EnviarPushNotificacion(request.Nombre, texto);
+                                Task tareaPushNotification = Task.Run(() =>
+                                {
+                                    EnviarPushNotificacion(request.Nombre, texto);
+                                });
+                                TareasNotificaciones.Add(tareaPushNotification);
                             }
                             break;
                         // Para el envio por whatsapp, usa Twilio
@@ -224,13 +242,11 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                             Console.WriteLine("Notificacion por whatsapp");
                             if (listaContactos[0].Phones.Count > 0)
                             {
-                                listaContactos[0].Phones.ForEach(async (telefono) =>
+                                listaContactos[0].Phones.ForEach(telefono =>
                                 {
                                     Alerta alertaGuardada = CrearAlerta(0, request.Nombre, request.Usuario, request.Trail, alertaBusiness);
-                                    // Valida si el telefono tiene lada si no debe agregarla
-                                    await Task.Delay(200);
-                                    // Envia el mensaje por Whatsapp
-                                    EnviarWhatsapp(request.Nombre, telefono.PhoneNumber.Trim(), InformacionAdicional);
+                                    Task tareaWhatsapp = Task.Run(() => EnviarWhatsapp(request.Nombre, telefono.PhoneNumber.Trim(), InformacionAdicional));
+                                    TareasNotificaciones.Add(tareaWhatsapp);
                                 });
                             }
                             break;
@@ -239,43 +255,56 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                             Console.WriteLine("Notificacion por sms");
                             if (listaContactos[0].Phones.Count > 0)
                             {
-                                listaContactos[0].Phones.ForEach(async (telefono) =>
+                                listaContactos[0].Phones.ForEach(telefono =>
                                 {
                                     Alerta alertaGuardada = CrearAlerta(0, request.Nombre, request.Usuario, request.Trail, alertaBusiness);
-                                    // Valida si el telefono tiene lada si no debe agregarla
-                                    await Task.Delay(200);
-                                    // Envia el mensaje por SMS
-                                    EnviarSMS(request.Nombre, telefono.PhoneNumber.Trim(), InformacionAdicional);
+                                    Task tareaSMS = Task.Run(() => EnviarSMS(request.Nombre, telefono.PhoneNumber.Trim(), InformacionAdicional));
+                                    TareasNotificaciones.Add(tareaSMS);
                                 });
                             }
                             break;
                     }
-                });
+                }
+                catch (Exception ex)
+                {
+                    RespuestasFallidas.Add(new Respuesta
+                    {
+                        Status = 500,
+                        Message = $"Message: {ex.Message}, StackTrace: {ex.StackTrace}, Data: {ex.Data}",
+                        Data = request
+                    });
+                    this.Errores++;
+                }
+            });
 
-                // Se actualiza la notificacion cuya regla ahora estara modificada con la informacion actual de esta (repeticionActual y ultimaEjecucion)
-                Regla regla = !string.IsNullOrWhiteSpace(request.Reglas) ? JsonConvert.DeserializeObject<Regla>(request.Reglas) : new();
-                regla.Aplazamiento.RepeticionActual++;
-                regla.Aplazamiento.UltimaEjecucion = DateTime.Now;
-                // No se modifica el trail ya que podria haber notificaciones que se ejecuten permanentemente y este ir aumentando significativamente
-                // Se modifica el campo reglas
-                request.Reglas = JsonConvert.SerializeObject(regla);
-                // Se actualiza la notificacion
-                _ = notificacionBusiness.Actualizar(request);
+            // Esperar la finalización de todas las tareas
+            await Task.WhenAll(TareasNotificaciones);
 
-                respuesta.Status = 200;
-                respuesta.Message = "El proceso se ejecutó correctamente.";
-                respuesta.Data = request;
-                respuesta.timeMeasure.Stop();
-
-            }
-            catch (Exception ex)
+            // Se actualiza la notificacion cuya regla ahora estara modificada con la informacion actual de esta (repeticionActual y ultimaEjecucion)
+            Regla regla = !string.IsNullOrWhiteSpace(request.Reglas) ? JsonConvert.DeserializeObject<Regla>(request.Reglas) : new();
+            regla.Aplazamiento.RepeticionActual++;
+            regla.Aplazamiento.UltimaEjecucion = DateTime.Now;
+            // No se modifica el trail ya que podria haber notificaciones que se ejecuten permanentemente y este ir aumentando significativamente
+            // Se modifica el campo reglas
+            request.Reglas = JsonConvert.SerializeObject(regla);
+            // Se actualiza la notificacion
+            _ = notificacionBusiness.Actualizar(request);
+            if (this.Errores == 0)
             {
-                respuesta.Status = 500;
-                respuesta.Message = $"Message: {ex.Message}, StackTrace: {ex.StackTrace}, Data: {ex.Data}";
+                respuesta.Status = 200;
+                respuesta.Message = "Todas las alertas a todas las notificaciones se ejecutaron correctamente.";
                 respuesta.Data = request;
                 respuesta.timeMeasure.Stop();
             }
-
+            else
+            {
+                // Si no, devuelve en la data un listado de strings con los mensajes indicando cual es el Message, StackTrace y Data de la alerta de notificacion que fallo.
+                respuesta.Status = 500;
+                respuesta.Message = "Alguna de las alertas falló en su ejecucion";
+                respuesta.Data = RespuestasFallidas.Select(respuestaFaliida => respuestaFaliida.Message).ToList();
+                respuesta.Function = "ValidarNotificaciones";
+                respuesta.timeMeasure.Stop();
+            }
             return respuesta;
         }
 
@@ -451,24 +480,39 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                 var message = new FirebaseAdmin.Messaging.Message()
                 {
                     Data = new Dictionary<string, string>()
-                    {
-                        { "title", Titulo },
-                        { "body", TextoNotificacion },
-                        { "image", "https://smaller-pictures.appspot.com/images/dreamstime_xxl_65780868_small.jpg" }
-                    },
+                        {
+                            { "title", Titulo },
+                            { "body", TextoNotificacion },
+                            { "image", "https://smaller-pictures.appspot.com/images/dreamstime_xxl_65780868_small.jpg" }
+                        },
                     Token = registrationToken,
                     Topic = topic
                 };
 
                 // Send a message to the device corresponding to the provided
                 // registration token.
-                string response = await FirebaseMessaging.DefaultInstance.SendAsync(message);
-                // Response is a message ID string.
-                Console.WriteLine("Successfully sent message: " + response);
+                if (FirebaseMessaging.DefaultInstance != null)
+                {
+                    // Response is a message ID string.
+                    var response = await FirebaseMessaging.DefaultInstance.SendAsync(message);
+                    Console.WriteLine("Successfully sent message: " + response);
+                }
+                else
+                {
+                    RespuestasFallidas.Add(new Respuesta
+                    {
+                        Status = 500,
+                        Message = "La aplicacion por default no existe, revise el FireBaseToken o que si este bien implementado en la app movil",
+                        Function = "ValidarNotificaciones",
+                        Data = $"La aplicacion por default no existe, revise el FireBaseToken o que si este bien implementado en la app movil"
+                    });
+                    this.Errores++;
+                }
             }
-            catch (Exception)
+            catch (NullReferenceException ex)
             {
-                throw;
+                this.Errores++;
+                await Console.Out.WriteLineAsync(ex.Message);
             }
         }
 

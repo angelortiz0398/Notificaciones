@@ -9,6 +9,7 @@ namespace FHL_SGD_Notificaciones_Api.Controllers
     /// </summary>
     [ApiController]
     [Route("[controller]")]
+    [ApiExplorerSettings(GroupName = "ValidadorNotificaciones")]
     public class ValidadorNotificacionesController : Controller
     {
         private ValidadorNotificacionesBusiness _bss { get; set; } = new();
@@ -32,9 +33,9 @@ namespace FHL_SGD_Notificaciones_Api.Controllers
         [ProducesResponseType(typeof(Respuesta), 500)]
         [Produces("application/json")]
         [FormatFilter]
-        public Respuesta ValidarNotificaciones(DateTime FechaHoraValidacion)
+        public async Task<Respuesta> ValidarNotificaciones(DateTime FechaHoraValidacion)
         {
-            return _bss.ValidarNotificaciones(FechaHoraValidacion);
+            return await _bss.ValidarNotificaciones(FechaHoraValidacion);
         }
     }
 }

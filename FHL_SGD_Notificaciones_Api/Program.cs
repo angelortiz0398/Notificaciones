@@ -33,7 +33,17 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "Envio de notificaciones de SGD",
         Description = "Una Web API de ASP.NET Core para gestionar las notificaciones de SGD"
-    });
+    });     
+    c.SwaggerDoc("ValidadorNotificaciones", new OpenApiInfo
+    {
+        Title = "Validador de notificaciones de SGD",
+        Description = "Una Web API de ASP.NET Core para gestionar las validaciones de notificaciones de SGD"
+    });    
+    //c.SwaggerDoc("Error", new OpenApiInfo
+    //{
+    //    Title = "Errores en las notificaciones",
+    //    Description = "Una Web API de ASP.NET Core para gestionar los errores notificaciones de SGD"
+    //});
     // Configuración para incluir comentarios XML de documentación
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
@@ -68,24 +78,33 @@ builder.Services.AddScoped<IGenericBusiness<Notificacion>, GenericBusiness<Notif
 
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 builder.Services.AddDataProtection();
-
+builder.Services.AddProblemDetails();
 var app = builder.Build();
+app.UseExceptionHandler();
+app.UseStatusCodePages();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseDeveloperExceptionPage();
+    //app.UseDeveloperExceptionPage();
+    app.UseExceptionHandler("/error-development");
+}
+else
+{
+    // Middleware para manejo de errores en producción
+    app.UseExceptionHandler("/error");
 }
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/EnvioNotificacion/swagger.json", "Envio de notificaciones");
+    c.SwaggerEndpoint("/swagger/ValidadorNotificaciones/swagger.json", "Validador de notificaciones");
+    //c.SwaggerEndpoint("/swagger/Error/swagger.json", "Errores de las notificaciones");
 });
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.MapControllerRoute(
