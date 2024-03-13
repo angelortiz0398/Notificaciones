@@ -431,7 +431,7 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
 
                     // Lee el contenido del archivo HTML y lo almacena en una cadena de texto
                     string contenidoHTML = File.ReadAllText(rutaArchivo);
-                    contenidoHTML = contenidoHTML.Replace("{{TextAlert}}", $"Por este medio se le notifica que tiene una alerta de notificación de '{TextoNotificacion}'. <br /> {InformacionExtra} <br /> Para mayor información ingrese a la plataforma.");
+                    contenidoHTML = contenidoHTML.Replace("{{TextAlert}}" , $"Por este medio se le notifica que tiene una alerta de notificación de '{TextoNotificacion}'. <br /> {InformacionExtra} <br /> Para mayor información ingrese a la plataforma.");
                     SendGridMessage msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, contenidoHTML);
                     // Se envia el email
                     var response = client.SendEmailAsync(msg);
