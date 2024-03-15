@@ -72,3 +72,5 @@ Abriremos en este orden:
      -  Log
 ![image](https://github.com/angelortiz0398/Notificaciones/assets/54503142/90b0a107-cef3-4c1d-8071-7d1c68b6f270)
 
+# Diagrama del funcionamiento del sistema
+![Notificaciones](https://github.com/angelortiz0398/Notificaciones/assets/54503142/aa766833-1cb8-46a8-a305-2e83ea00adab)
