@@ -35,6 +35,7 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
         private string NumeroServicio { get; set; }
         private string ApiKey { get; set; }
         private string FireBaseToken { get; set; }
+        private string Email { get; set; }
         private int Errores { get; set; } = 0;
         List<Respuesta> RespuestasFallidas { get; set; } = [];
 
@@ -59,6 +60,7 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
             NumeroServicio = Configuration.GetSection("ApiURLS:numeroServicio").Value;
             ApiKey = Configuration.GetSection("ApiURLS:SENDGRID_API_KEY").Value;
             FireBaseToken = Configuration.GetSection("ApiURLS:FireBaseToken").Value;
+            Email = Configuration.GetSection("ApiURLS:Email").Value;
         }
 
 
@@ -422,7 +424,7 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                     // Se crea el cliente para sendGrid
                     SendGridClient client = new(ApiKey);
                     // Se usa el correo destinado para esto
-                    EmailAddress from = new("angelortiz0398@gmail.com", "Grupo FH");
+                    EmailAddress from = new(Email, "Grupo FH");
                     string subject = $"Alertamiento de {TextoNotificacion}";
                     EmailAddress to = new(CorreoElectronico);
                     string plainTextContent = "Alertamiento usando servicios de Twilio.";
