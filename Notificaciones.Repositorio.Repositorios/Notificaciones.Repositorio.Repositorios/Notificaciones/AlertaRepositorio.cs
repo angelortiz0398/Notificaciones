@@ -36,9 +36,10 @@ namespace Notificaciones.Repositorio.Repositorios.Notificaciones
                 IEnumerable<SqlParameter> parameters = new List<SqlParameter>(new List<SqlParameter> { comandoLista });
 
 
-                var respuestaSP = new BaseData().accesor.SpExcuteJson(MethodsDB.QueryInsertarActualizarAlertas, parameters);
+                var respuestaSP = new BaseData().accesor.SpSaveJson(out long Id, MethodsDB.QueryInsertarActualizarAlertas, parameters);
                 if (respuestaSP != null)
                 {
+                    item.Id = Id;
                     respuesta.Data = item;
                     respuesta.TotalRows = respuestaSP.TotalRows;
                     respuesta.Message = respuestaSP.Data.ToString();

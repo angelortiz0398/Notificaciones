@@ -18,6 +18,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Twilio;
+using Twilio.Exceptions;
 using Twilio.Rest.Api.V2010.Account;
 using Alerta = Notificaciones.Modelo.Entidades.Notificaciones.Alerta;
 using Notificacion = Notificaciones.Modelo.Entidades.Notificaciones.Notificacion;
@@ -200,7 +201,7 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                                 // Se recorre la lista de correos para enviar los emails usando una plantilla
                                 listaContactos[0].Emails.ForEach(correo =>
                                 {
-                                    Alerta alertaGuardada = CrearAlerta(0, request.Nombre, request.Usuario, request.Trail, alertaBusiness);
+                                    Alerta alertaGuardada = CrearAlerta(request.Id, request.Nombre, request.Usuario, request.Trail, alertaBusiness);
                                     Task tareaCorreoElectronico = Task.Run(() =>
                                         EnviarCorreoElectronico(request.Nombre, correo.EmailAddress.Trim(), InformacionAdicional)
                                     );
@@ -218,7 +219,8 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                                 // Se recorre la lista de correos para enviar los emails usando una plantilla
                                 listaContactos[0].Users.ForEach(usuario =>
                                 {
-                                    Alerta alertaGuardada = CrearAlerta(0, request.Nombre, request.Usuario, request.Trail, alertaBusiness);
+                                    Alerta alertaGuardada = CrearAlerta(request.Id, request.Nombre, request.Usuario, request.Trail, alertaBusiness);
+                                    Task.Delay(100);
                                     Task tareaBandeja = Task.Run(() => EnviarBandeja(usuario.UserId, alertaGuardada, request.Usuario, request.Trail, bandejaBusiness)
                                     );
                                     TareasNotificaciones.Add(tareaBandeja);
@@ -230,7 +232,7 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                             Console.WriteLine("Notificacion por push");
                             if (listaContactos[0].Users.Count > 0)
                             {
-                                Alerta alertaGuardada = CrearAlerta(0, request.Nombre, request.Usuario, request.Trail, alertaBusiness);
+                                Alerta alertaGuardada = CrearAlerta(request.Id, request.Nombre, request.Usuario, request.Trail, alertaBusiness);
                                 string texto = $"Por este medio se le notifica que tiene una alerta de {request.Nombre}. Para mayor información ingrese a la plataforma";
                                 Task tareaPushNotification = Task.Run(() =>
                                 {
@@ -246,7 +248,7 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                             {
                                 listaContactos[0].Phones.ForEach(telefono =>
                                 {
-                                    Alerta alertaGuardada = CrearAlerta(0, request.Nombre, request.Usuario, request.Trail, alertaBusiness);
+                                    Alerta alertaGuardada = CrearAlerta(request.Id, request.Nombre, request.Usuario, request.Trail, alertaBusiness);
                                     Task tareaWhatsapp = Task.Run(() => EnviarWhatsapp(request.Nombre, telefono.PhoneNumber.Trim(), InformacionAdicional));
                                     TareasNotificaciones.Add(tareaWhatsapp);
                                 });
@@ -259,7 +261,7 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                             {
                                 listaContactos[0].Phones.ForEach(telefono =>
                                 {
-                                    Alerta alertaGuardada = CrearAlerta(0, request.Nombre, request.Usuario, request.Trail, alertaBusiness);
+                                    Alerta alertaGuardada = CrearAlerta(request.Id, request.Nombre, request.Usuario, request.Trail, alertaBusiness);
                                     Task tareaSMS = Task.Run(() => EnviarSMS(request.Nombre, telefono.PhoneNumber.Trim(), InformacionAdicional));
                                     TareasNotificaciones.Add(tareaSMS);
                                 });
@@ -356,7 +358,8 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                     {
                         throw new ArgumentException($"'{nameof(AuthToken)}' no puede ser nulo ni estar vacío.", nameof(AuthToken));
                     }
-
+                    try
+                    {
                     string numeroSMS = NumeroTelefonico.StartsWith("521") ? $"+{NumeroTelefonico}" : $"+52{NumeroTelefonico}";
                     TwilioClient.Init(AccountSid, AuthToken);
                     MessageResource messageResource = MessageResource.Create(
@@ -365,6 +368,11 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                         to: new Twilio.Types.PhoneNumber($"{numeroSMS}")
                     );
                     Console.WriteLine("messageResource: " + JsonConvert.SerializeObject(messageResource));
+                    }catch (TwilioException ex)
+                    {
+                        this.Errores++;
+                        Console.WriteLine(ex.Message);
+                    }
                 }
             }
         }
