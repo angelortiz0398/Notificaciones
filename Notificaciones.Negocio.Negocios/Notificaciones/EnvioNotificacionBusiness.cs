@@ -208,7 +208,6 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                                     TareasNotificaciones.Add(tareaCorreoElectronico);
                                 }
                                 );
-
                             }
                             break;
                         // Para el envio por user, inserta en la bandeja de notificaciones del usuario
@@ -216,11 +215,9 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                             Console.WriteLine("Notificacion por user");
                             if (listaContactos[0].Users.Count > 0)
                             {
-                                // Se recorre la lista de correos para enviar los emails usando una plantilla
                                 listaContactos[0].Users.ForEach(usuario =>
                                 {
                                     Alerta alertaGuardada = CrearAlerta(request.Id, request.Nombre, request.Usuario, request.Trail, alertaBusiness);
-                                    Task.Delay(100);
                                     Task tareaBandeja = Task.Run(() => EnviarBandeja(usuario.UserId, alertaGuardada, request.Usuario, request.Trail, bandejaBusiness)
                                     );
                                     TareasNotificaciones.Add(tareaBandeja);
@@ -332,8 +329,8 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                 Usuario = Usuario,
                 Trail = Trail
             };
-            Alerta alertaGuardada = alertaBusiness.Insertar(alerta);
-            return alertaGuardada;
+            alerta = alertaBusiness.Insertar(alerta);
+            return alerta;
         }
 
         /// <summary>
@@ -406,7 +403,7 @@ namespace Notificaciones.Negocio.Negocios.Notificaciones
                     {
                         ForceDelivery = true,
                         From = new PhoneNumber($"whatsapp:+{NumeroServicio}"),
-                        Body = $"Por este medio se le notifica que tiene una alerta de notificación de **{TextoAlerta}**.\n{InformacionExtra}\nPara mayor información ingrese a la plataforma.",
+                        Body = $"Por este medio se le notifica que tiene una alerta de notificación de *{TextoAlerta}*.\n{InformacionExtra}\nPara mayor información ingrese a la plataforma.",
                         MediaUrl = []
                     };
                     var response = MessageResource.Create(messageOptions);
