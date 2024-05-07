@@ -35,7 +35,8 @@ namespace NotificacionesService.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("Development")]
-        public string ASPNETCORE_ENVIRONMENT {
+        public string ASPNETCORE_ENVIRONMENT
+        {
             get {
                 return ((string)(this["ASPNETCORE_ENVIRONMENT"]));
             }

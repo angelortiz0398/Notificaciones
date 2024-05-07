@@ -1,8 +1,9 @@
-﻿using FHL_SGD_Notificaciones_Service.Shared;
+﻿using FHL_SGD_Notificaciones_Service.Properties;
+using FHL_SGD_Notificaciones_Service.Shared;
 using Newtonsoft.Json;
 using System;
+using System.Configuration;
 using System.Diagnostics;
-using System.Net;
 using System.Net.Http;
 using System.ServiceProcess;
 using System.Threading.Tasks;
@@ -14,6 +15,10 @@ namespace NotificacionesService
         private EventLog EventLog1 { get; set; }
         private readonly string logSourceName = "NotificacionSource";
         private readonly string logName = "Log";
+        private string UrlServer { get; set; } = string.Empty;
+        private string ExecutionTime { get; set; } = string.Empty;
+        private readonly string Environment = string.Empty; 
+
 
         public NotificacionService()
         {
@@ -28,12 +33,16 @@ namespace NotificacionesService
 
             EventLog1.Source = logSourceName;
             EventLog1.Log = logName;
+            Environment = Properties.Settings.Default.ASPNETCORE_ENVIRONMENT;
+            UrlServer = ConfigurationManager.AppSettings[$"{Environment}.UrlServer"];
+            ExecutionTime = ConfigurationManager.AppSettings[$"{Environment}.ExecutionTime"];
+
         }
 
         protected override void OnStart(string[] args)
         {
             EventLog1.WriteEntry("Se inicio correctamente el proceso.");
-            EnviaSolicitud();
+            _ = EnviaSolicitud();
         }
 
         protected override void OnStop()
@@ -43,7 +52,7 @@ namespace NotificacionesService
 
         public async Task EnviaSolicitud()
         {
-            string url = "https://localhost:7289/ValidadorNotificaciones/Validar";
+            string url = $"{UrlServer}/ValidadorNotificaciones/Validar";
             // Ignorar la validación del certificado
             HttpClientHandler handler = new HttpClientHandler();
             handler.ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => true;
@@ -67,8 +76,8 @@ namespace NotificacionesService
                             EventLog1.WriteEntry($"Consulta a {urlBase} fallida. Respuesta: {responseBody}");
                         }
 
-                        // Esperar 30 segundos antes de la próxima solicitud
-                        await Task.Delay(TimeSpan.FromSeconds(30));
+                        // Espera algunos segundos antes de la próxima solicitud
+                        await Task.Delay(TimeSpan.FromSeconds(Convert.ToInt32(ExecutionTime)));
                     }
                 }
                 catch (Exception ex)
