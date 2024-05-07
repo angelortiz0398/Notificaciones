@@ -163,7 +163,6 @@
       <LastGenOutput>Settings1.Designer.cs</LastGenOutput>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="user.config" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="NotificacionService.resx">
