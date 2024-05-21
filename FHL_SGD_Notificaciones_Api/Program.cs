@@ -12,14 +12,6 @@ using System.Reflection;
 using System.Text.Json.Serialization;
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 var builder = WebApplication.CreateBuilder(args);
-builder.WebHost.UseKestrel(options =>
-{
-    options.Limits.MaxRequestBodySize = 2147483647; //50MB
-    options.Limits.MaxRequestBufferSize = 2147483647; //50MB
-    options.Limits.MaxResponseBufferSize = 2147483647;
-    options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(10);
-    options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(10);
-});
 
 builder.Services.AddControllers()
     .AddJsonOptions(x => {
